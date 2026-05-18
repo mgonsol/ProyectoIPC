@@ -5,7 +5,7 @@
  *  Universitat Politècnica de València
  * ============================================================
  *
- *  DESCRIPCIÓN GENERAL
+ *  DESCRIPCIÓN GENERAL Prueba de commit
  *  -------------------
  *  Este controlador gestiona la vista principal de la aplicación
  *  de puntos de interés (POI) sobre un mapa.
