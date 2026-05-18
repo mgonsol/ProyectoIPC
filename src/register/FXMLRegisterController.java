@@ -16,6 +16,7 @@ import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.fxml.Initializable;
 import javafx.scene.Node;
+import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.DatePicker;
 import javafx.scene.control.Label;
@@ -177,11 +178,33 @@ public class FXMLRegisterController implements Initializable {
 
     @FXML
     private void register(ActionEvent event) {
-        app.registerUser(nicknameField.getText(), emailField.getText(), passwordField.getText(), dateField.getValue(), "");
+        boolean ok = app.registerUser(nicknameField.getText(), emailField.getText(), 
+                    passwordField.getText(), dateField.getValue(), "");
+    if (ok) {
+        try {
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/login/FXMLLogin.fxml"));
+            Pane pane = loader.load();
+            nicknameField.getScene().setRoot(pane);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    } else {
+        Alert alert = new Alert(Alert.AlertType.ERROR);
+        alert.setTitle("Error");
+        alert.setHeaderText("No se pudo registrar el usuario");
+        alert.showAndWait();
+    }
     }
 
     @FXML
     private void auntenticarse(ActionEvent event) {
+        try {
+        FXMLLoader loader = new FXMLLoader(getClass().getResource("/login/FXMLLogin.fxml"));
+        Pane pane = loader.load();
+        nicknameField.getScene().setRoot(pane);
+    } catch (Exception e) {
+        e.printStackTrace();
+    }
        
     }
         
