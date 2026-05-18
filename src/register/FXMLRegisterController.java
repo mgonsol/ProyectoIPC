@@ -4,7 +4,6 @@
  */
 package register;
 
-import javafxmlapplication.*;
 import java.net.URL;
 import java.time.LocalDate;
 import java.util.ResourceBundle;
@@ -14,6 +13,7 @@ import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
+import javafx.fxml.FXMLLoader;
 import javafx.fxml.Initializable;
 import javafx.scene.Node;
 import javafx.scene.control.Button;
@@ -21,6 +21,7 @@ import javafx.scene.control.DatePicker;
 import javafx.scene.control.Label;
 import javafx.scene.control.PasswordField;
 import javafx.scene.control.TextField;
+import javafx.scene.layout.Pane;
 import upv.ipc.sportlib.SportActivityApp;
 import upv.ipc.sportlib.User;
 
@@ -177,20 +178,12 @@ public class FXMLRegisterController implements Initializable {
     @FXML
     private void register(ActionEvent event) {
         app.registerUser(nicknameField.getText(), emailField.getText(), passwordField.getText(), dateField.getValue(), "");
-        
-        emailField.clear();
-        passwordField.clear();
-        password2Field.clear();
-        dateField.setValue(null);
-
-        validEmail.setValue(Boolean.FALSE);
-        validPassword.setValue(Boolean.FALSE);
-        validDate.setValue(Boolean.FALSE);
     }
 
     @FXML
     private void auntenticarse(ActionEvent event) {
        
     }
+        
 
 }
