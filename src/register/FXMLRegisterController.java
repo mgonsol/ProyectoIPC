@@ -212,6 +212,11 @@ public class FXMLRegisterController implements Initializable {
         boolean ok = app.registerUser(nicknameField.getText(), emailField.getText(), 
                     passwordField.getText(), dateField.getValue(), "");
     if (ok) {
+        Alert alert = new Alert(Alert.AlertType.INFORMATION);
+        alert.setTitle("Registro completado");
+        alert.setHeaderText("¡Usuario creado correctamente!");
+        alert.setContentText("Ya puedes iniciar sesión con tu cuenta.");
+        alert.showAndWait();
         try {
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/login/FXMLLogin.fxml"));
             Pane pane = loader.load();
