@@ -17,7 +17,6 @@
 <?import javafx.scene.text.Font?>
 <?import javafx.scene.text.Text?>
 
-
 <GridPane gridLinesVisible="true" prefHeight="503.0" prefWidth="752.0" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" fx:controller="javafxmlapplication.FXMLRegisterController">
    <columnConstraints>
       <ColumnConstraints hgrow="SOMETIMES" maxWidth="541.2000122070312" minWidth="10.0" prefWidth="450.3999877929688" />
@@ -58,6 +57,25 @@
                   <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
               </rowConstraints>
                <children>
+                  <VBox>
+                     <children>
+                        <Label text="Nickname:" textFill="#025477">
+                           <padding>
+                              <Insets left="20.0" right="20.0" />
+                           </padding>
+                        </Label>
+                        <TextField fx:id="nicknameField" minHeight="26.0" minWidth="150.0" prefHeight="26.0" prefWidth="350.0">
+                           <VBox.margin>
+                              <Insets left="20.0" right="80.0" />
+                           </VBox.margin>
+                        </TextField>
+                        <Label fx:id="nicknameError" text="Entre 6 y 15 caracteres (letras, dígitos, - o _)" textFill="#ca0505" visible="false">
+                           <VBox.margin>
+                              <Insets left="20.0" right="10.0" />
+                           </VBox.margin>
+                        </Label>
+                     </children>
+                  </VBox>
                   <VBox prefHeight="200.0" prefWidth="100.0" GridPane.rowIndex="1">
                      <children>
                         <Label text="Email:" textFill="#025477">
@@ -174,19 +192,6 @@
                         <Insets bottom="20.0" left="20.0" right="20.0" top="20.0" />
                      </GridPane.margin>
                   </HBox>
-                  <TextField fx:id="nicknameField" minHeight="26.0" minWidth="150.0" prefHeight="26.0" prefWidth="350.0">
-                     <GridPane.margin>
-                        <Insets left="20.0" right="80.0" top="20.0" />
-                     </GridPane.margin>
-                  </TextField>
-                  <Label text="Nickname:" textFill="#025477">
-                     <padding>
-                        <Insets left="20.0" right="20.0" />
-                     </padding>
-                     <GridPane.margin>
-                        <Insets bottom="20.0" />
-                     </GridPane.margin>
-                  </Label>
                </children>
             </GridPane>
          </children>

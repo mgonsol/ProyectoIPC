@@ -38,10 +38,8 @@ public class FXMLLoginController implements Initializable {
     public void initialize(URL url, ResourceBundle rb) {
         // TODO.
         
-    }    
-    private void cancel(ActionEvent event) {
-        System.exit(0);
-    }
+    } 
+    
     private void checkNickname(){
         User.checkNickName(nicknameField1.getText());
     }

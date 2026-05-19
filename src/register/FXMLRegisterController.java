@@ -41,7 +41,9 @@ public class FXMLRegisterController implements Initializable {
     private PasswordField passwordField;
     @FXML
     private Label passwordError;
+    @FXML
     private Button bAccept;
+    @FXML
     private Button bCancel;
     @FXML
     private PasswordField password2Field;
@@ -56,14 +58,18 @@ public class FXMLRegisterController implements Initializable {
     private BooleanProperty validPassword;
     private BooleanProperty confirmPasswords;
     private BooleanProperty validDate;
-    
+    private BooleanProperty validNickname;
+
     private javafx.beans.value.ChangeListener<String> listenerEmail;
     private javafx.beans.value.ChangeListener<String> listenerPassword;
     private javafx.beans.value.ChangeListener<String> listenerPassword2;
     private javafx.beans.value.ChangeListener<LocalDate> listenerDate;
+    private javafx.beans.value.ChangeListener<String> listenerNickname;
     @FXML
     private TextField nicknameField;
-    
+    @FXML
+    private Label nicknameError;
+
     SportActivityApp app = SportActivityApp.getInstance();
 
     /**
@@ -118,7 +124,7 @@ public class FXMLRegisterController implements Initializable {
             
             validDate = new SimpleBooleanProperty();
             validDate.setValue(Boolean.FALSE);
-            
+
             dateField.focusedProperty().addListener((observable, oldValue, newValue)->{
                 if(!newValue){
                     checkDate();
@@ -130,8 +136,25 @@ public class FXMLRegisterController implements Initializable {
                     }
                 }
             });
-            
+
+            validNickname = new SimpleBooleanProperty();
+            validNickname.setValue(Boolean.FALSE);
+
+            nicknameField.focusedProperty().addListener((observable, oldValue, newValue)->{
+                if(!newValue){
+                    checkNickname();
+                    if(!validNickname.get()){
+                        if(listenerNickname == null){
+                            listenerNickname = (a, b, c) -> checkNickname();
+                            nicknameField.textProperty().addListener(listenerNickname);
+                        }
+                    }
+                }
+            });
+
             BooleanBinding validFields = Bindings.and(validEmail, validPassword)
+                .and(confirmPasswords)
+                .and(validNickname)
                 .and(validDate);
 
             bAccept.disableProperty().bind(
@@ -155,15 +178,21 @@ public class FXMLRegisterController implements Initializable {
     }
     
     private void checkEmail() {
-        User.checkEmail(emailField.getText());
+        boolean ok = User.checkEmail(emailField.getText());
+        validEmail.set(ok);
+        showError(ok, emailField, emailError);
     }
     
-    private void checkNickname(){
-        User.checkNickName(nicknameField.getText());
+    private void checkNickname() {
+        boolean ok = User.checkNickName(nicknameField.getText());
+        validNickname.set(ok);
+        showError(ok, nicknameField, nicknameError);
     }
-    
+
     private void checkPassword() {
-        User.checkPassword(passwordField.getText());
+        boolean ok = User.checkPassword(passwordField.getText());
+        validPassword.set(ok);
+        showError(ok, passwordField, passwordError);
     }
     
     private void checkPasswordsMatch() {
@@ -173,7 +202,9 @@ public class FXMLRegisterController implements Initializable {
     }
     
     private void checkDate(){
-        User.isOlderThan(dateField.getValue(), 12);
+        boolean ok = User.isOlderThan(dateField.getValue(), 12);
+        validDate.set(ok);
+        showError(ok, dateField, dateError);
     }
 
     @FXML
