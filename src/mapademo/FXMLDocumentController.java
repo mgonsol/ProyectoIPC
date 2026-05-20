@@ -1,42 +1,23 @@
-/*
- * ============================================================
- *  PROYECTO – Running la Safor
- *  Asignatura: Interfaces Persona-Computador
- *  Universitat Politècnica de València
- * ============================================================
- *
- *  DESCRIPCIÓN GENERAL
- *  -------------------
- *  Controlador de la vista principal (mapa + lista de actividades).
- *
- *  Funcionalidades implementadas:
- *   1. Carga y visualización de una imagen de mapa.
- *   2. Zoom interactivo mediante un Slider.
- *   3. Importar actividad desde archivo GPX (Issue 6).
- *   4. Lista de actividades del usuario en el ListView.
- *   5. Al seleccionar actividad: carga el mapa correcto y dibuja la ruta (Issue 8).
- *   6. Clic derecho sobre el mapa: menú contextual para anotaciones y círculos.
- *   7. Cerrar sesión y volver al login.
- *
- * ============================================================
- */
 package mapademo;
 
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;
+import java.util.Arrays;
 import java.util.List;
-import java.util.Optional;
 import java.util.ResourceBundle;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.fxml.Initializable;
+import javafx.geometry.Insets;
 import javafx.geometry.Point2D;
+import javafx.scene.Cursor;
 import javafx.scene.Group;
 import javafx.scene.control.Alert;
 import javafx.scene.control.ButtonBar;
 import javafx.scene.control.ButtonType;
+import javafx.scene.control.ColorPicker;
 import javafx.scene.control.ContextMenu;
 import javafx.scene.control.Dialog;
 import javafx.scene.control.Label;
@@ -55,58 +36,38 @@ import javafx.scene.layout.Pane;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Circle;
+import javafx.scene.shape.Line;
 import javafx.scene.shape.Polyline;
 import javafx.scene.text.Text;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 import upv.ipc.sportlib.Activity;
+import upv.ipc.sportlib.Annotation;
+import upv.ipc.sportlib.AnnotationType;
+import upv.ipc.sportlib.GeoPoint;
 import upv.ipc.sportlib.MapProjection;
 import upv.ipc.sportlib.MapRegion;
 import upv.ipc.sportlib.SportActivityApp;
 import upv.ipc.sportlib.TrackPoint;
 import upv.ipc.sportlib.User;
 
-/**
- * Controlador principal: mapa + lista de actividades del usuario.
- */
 public class FXMLDocumentController implements Initializable {
 
-    // =========================================================
-    //  LIBRERÍA IPC
-    // =========================================================
-
-    /** Punto de acceso único a la lógica de negocio (Singleton). */
     private final SportActivityApp app = SportActivityApp.getInstance();
 
-    // =========================================================
-    //  ESTRUCTURA DE NODOS PARA ZOOM
-    // =========================================================
-    //
-    //  ScrollPane (map_scrollpane)
-    //   └─ contentGroup
-    //       └─ zoomGroup  ← se escala para el zoom
-    //           └─ mapPane
-    //               ├─ ImageView
-    //               ├─ Polyline  ← ruta de la actividad
-    //               └─ Circle / Text ← anotaciones
-    //
-    // =========================================================
+    private Group         zoomGroup;
+    private Pane          mapPane;
+    private ContextMenu   mapContextMenu;
 
-    private Group zoomGroup;
-    private Pane  mapPane;
-    private ContextMenu mapContextMenu;
-    private boolean insertionMode = false;
-
-    /** Dimensiones reales de la imagen cargada — necesarias para MapProjection. */
     private double mapWidth  = 0;
     private double mapHeight = 0;
-
-    /** Proyección activa — se guarda para usarla al añadir anotaciones (Issue 7). */
     private MapProjection currentProjection = null;
 
-    // =========================================================
-    //  ELEMENTOS FXML
-    // =========================================================
+    // estado anotaciones
+    private Activity       selectedActivity      = null;
+    private AnnotationType pendingAnnotationType = null;
+    private GeoPoint       firstAnnotationPoint  = null;
+    private double         rightClickX, rightClickY;
 
     @FXML private ListView<Activity> map_listview;
     @FXML private ScrollPane         map_scrollpane;
@@ -115,156 +76,262 @@ public class FXMLDocumentController implements Initializable {
     @FXML private Label              statusLabel;
     @FXML private Label              usernameLabel;
 
-    // =========================================================
-    //  ZOOM
-    // =========================================================
+    // ── Zoom ──────────────────────────────────────────────────
 
-    @FXML
-    void zoomIn(ActionEvent event) {
-        zoom_slider.setValue(zoom_slider.getValue() + 0.1);
+    @FXML void zoomIn(ActionEvent event)  { zoom_slider.setValue(zoom_slider.getValue() + 0.1); }
+    @FXML void zoomOut(ActionEvent event) { zoom_slider.setValue(zoom_slider.getValue() - 0.1); }
+
+    private void zoom(double scale) {
+        double h = map_scrollpane.getHvalue();
+        double v = map_scrollpane.getVvalue();
+        zoomGroup.setScaleX(scale);
+        zoomGroup.setScaleY(scale);
+        map_scrollpane.setHvalue(h);
+        map_scrollpane.setVvalue(v);
     }
 
-    @FXML
-    void zoomOut(ActionEvent event) {
-        zoom_slider.setValue(zoom_slider.getValue() - 0.1);
-    }
+    // ── Lista de actividades ──────────────────────────────────
 
-    private void zoom(double scaleValue) {
-        double scrollH = map_scrollpane.getHvalue();
-        double scrollV = map_scrollpane.getVvalue();
-        zoomGroup.setScaleX(scaleValue);
-        zoomGroup.setScaleY(scaleValue);
-        map_scrollpane.setHvalue(scrollH);
-        map_scrollpane.setVvalue(scrollV);
-    }
-
-    // =========================================================
-    //  SELECCIÓN EN EL LISTVIEW → DIBUJA ACTIVIDAD EN EL MAPA
-    // =========================================================
-
-    /**
-     * Al hacer clic en una actividad de la lista:
-     * - Busca el mapa que cubre esa actividad.
-     * - Carga el mapa.
-     * - Dibuja la ruta (Polyline) sobre él.
-     * - Muestra las estadísticas básicas en la barra de estado.
-     */
     @FXML
     void listClicked(MouseEvent event) {
         Activity selected = map_listview.getSelectionModel().getSelectedItem();
         if (selected == null) return;
 
-        MapRegion region = app.findMapForActivity(selected);
-        if (region != null) {
-            buildMap(new File(region.getImagePath()));
-            drawActivity(selected, region);
-        } else {
-            setStatus("No se encontró un mapa para esta actividad.");
-            return;
-        }
+        selectedActivity = selected;
 
-        // Estadísticas básicas en la barra inferior
-        double distKm = selected.getTotalDistance() / 1000.0;
-        long minutos   = selected.getDuration().toMinutes();
+        MapRegion region = app.findMapForActivity(selected);
+        if (region == null) { setStatus("No se encontró mapa para esta actividad."); return; }
+
+        buildMap(new File(region.getImagePath()));
+        drawActivity(selected, region);
+        for (Annotation ann : selected.getAnnotations()) drawAnnotation(ann);
+
+        double distKm  = selected.getTotalDistance() / 1000.0;
+        long   minutos = selected.getDuration().toMinutes();
         setStatus(String.format("📍 %s   |   %.2f km   |   %d min",
                 selected.getName(), distKm, minutos));
     }
 
-    // =========================================================
-    //  DIBUJAR LA RUTA DE UNA ACTIVIDAD
-    // =========================================================
+    // ── Dibujar ruta ─────────────────────────────────────────
 
-    /**
-     * Dibuja la ruta de una actividad sobre el mapa.
-     *
-     * Sigue el enfoque del dossier: itera los TrackPoints uno a uno con
-     * proj.project(tp) en lugar de projectActivity(), que puede devolver
-     * resultados inesperados según la versión de la librería.
-     *
-     * También guarda la proyección en currentProjection para usarla
-     * al añadir anotaciones (unproject del clic del ratón).
-     */
     private void drawActivity(Activity activity, MapRegion region) {
-        List<TrackPoint> trackPoints = activity.getTrackPoints();
-        if (trackPoints == null || trackPoints.isEmpty()) {
-            setStatus("La actividad no tiene puntos GPS.");
-            return;
-        }
+        List<TrackPoint> pts = activity.getTrackPoints();
+        if (pts == null || pts.isEmpty()) { setStatus("La actividad no tiene puntos GPS."); return; }
 
-        // Creamos la proyección con las dimensiones reales de la imagen
         currentProjection = new MapProjection(region, mapWidth, mapHeight);
 
-        // ── Polyline de la ruta ────────────────────────────────────────
         Polyline ruta = new Polyline();
         ruta.setStroke(Color.BLUE);
         ruta.setStrokeWidth(3.5);
-        ruta.setFill(Color.TRANSPARENT);   // importante: evita relleno negro por defecto
-
-        for (TrackPoint tp : trackPoints) {
+        ruta.setFill(Color.TRANSPARENT);
+        for (TrackPoint tp : pts) {
             Point2D p = currentProjection.project(tp);
             ruta.getPoints().addAll(p.getX(), p.getY());
         }
         mapPane.getChildren().add(ruta);
 
-        // ── Marcador de inicio (verde) ─────────────────────────────────
-        Point2D inicio = currentProjection.project(trackPoints.get(0));
-        Circle markerInicio = new Circle(8, Color.LIMEGREEN);
-        markerInicio.setStroke(Color.DARKGREEN);
-        markerInicio.setStrokeWidth(2);
-        markerInicio.setCenterX(inicio.getX());
-        markerInicio.setCenterY(inicio.getY());
+        Point2D inicio = currentProjection.project(pts.get(0));
+        Circle ci = new Circle(8, Color.LIMEGREEN);
+        ci.setStroke(Color.DARKGREEN); ci.setStrokeWidth(2);
+        ci.setCenterX(inicio.getX()); ci.setCenterY(inicio.getY());
 
-        // ── Marcador de fin (rojo) ─────────────────────────────────────
-        Point2D fin = currentProjection.project(trackPoints.get(trackPoints.size() - 1));
-        Circle markerFin = new Circle(8, Color.TOMATO);
-        markerFin.setStroke(Color.DARKRED);
-        markerFin.setStrokeWidth(2);
-        markerFin.setCenterX(fin.getX());
-        markerFin.setCenterY(fin.getY());
+        Point2D fin = currentProjection.project(pts.get(pts.size() - 1));
+        Circle cf = new Circle(8, Color.TOMATO);
+        cf.setStroke(Color.DARKRED); cf.setStrokeWidth(2);
+        cf.setCenterX(fin.getX()); cf.setCenterY(fin.getY());
 
-        mapPane.getChildren().addAll(markerInicio, markerFin);
+        mapPane.getChildren().addAll(ci, cf);
     }
 
-    // =========================================================
-    //  CONSTRUCCIÓN DEL MAPA
-    // =========================================================
+    // ── Anotaciones ──────────────────────────────────────────
 
-    /**
-     * Carga una imagen y reconstruye la jerarquía de nodos del mapa.
-     * Puede llamarse varias veces (al cambiar mapa o seleccionar actividad).
-     */
+    private void startAnnotation(AnnotationType type) {
+        if (type == AnnotationType.POINT || type == AnnotationType.TEXT) {
+            GeoPoint geo = currentProjection.unproject(rightClickX, rightClickY);
+            showAnnotationDialog(type, Arrays.asList(geo));
+        } else {
+            pendingAnnotationType = type;
+            firstAnnotationPoint  = null;
+            mapPane.setCursor(Cursor.CROSSHAIR);
+            String nombre = (type == AnnotationType.LINE) ? "línea" : "círculo";
+            setStatus("Clic en el primer punto de la " + nombre + " (1/2)…");
+        }
+    }
+
+    private void handleAnnotationClick(double x, double y) {
+        GeoPoint geo = currentProjection.unproject(x, y);
+        if (firstAnnotationPoint == null) {
+            firstAnnotationPoint = geo;
+            setStatus("Punto 1 fijado. Clic en el segundo punto (2/2)…");
+        } else {
+            List<GeoPoint> points = Arrays.asList(firstAnnotationPoint, geo);
+            AnnotationType type   = pendingAnnotationType;
+            pendingAnnotationType = null;
+            firstAnnotationPoint  = null;
+            mapPane.setCursor(Cursor.DEFAULT);
+            showAnnotationDialog(type, points);
+        }
+    }
+
+    private void showAnnotationDialog(AnnotationType type, List<GeoPoint> geoPoints) {
+        Dialog<Annotation> dialog = new Dialog<>();
+        dialog.setTitle("Nueva anotación");
+        dialog.setHeaderText(switch (type) {
+            case POINT -> "Punto"; case TEXT -> "Texto";
+            case LINE  -> "Línea"; case CIRCLE -> "Círculo";
+        });
+
+        ButtonType ok = new ButtonType("Guardar", ButtonBar.ButtonData.OK_DONE);
+        dialog.getDialogPane().getButtonTypes().addAll(ok, ButtonType.CANCEL);
+
+        TextField   textField = new TextField();
+        textField.setPromptText("Texto (opcional)");
+        ColorPicker colorPicker = new ColorPicker(Color.web("#E74C3C"));
+
+        VBox content = new VBox(8, new Label("Texto:"), textField, new Label("Color:"), colorPicker);
+        content.setPadding(new Insets(10));
+        dialog.getDialogPane().setContent(content);
+
+        dialog.setResultConverter(btn -> btn == ok
+            ? new Annotation(type, textField.getText().trim(), colorToHex(colorPicker.getValue()), 2.5, geoPoints)
+            : null);
+
+        dialog.showAndWait().ifPresent(ann -> {
+            Annotation saved = app.addAnnotation(selectedActivity, ann);
+            if (saved != null) { drawAnnotation(saved); setStatus("✓ Anotación guardada."); }
+            else                { setStatus("✗ No se pudo guardar la anotación."); }
+        });
+    }
+
+    private void drawAnnotation(Annotation ann) {
+        Color color;
+        try { color = Color.web(ann.getColor()); } catch (Exception e) { color = Color.RED; }
+
+        List<GeoPoint> pts = ann.getGeoPoints();
+        if (pts == null || pts.isEmpty() || currentProjection == null) return;
+
+        switch (ann.getType()) {
+
+            case POINT -> {
+                Point2D p = currentProjection.project(pts.get(0));
+                Circle c = new Circle(7, color);
+                c.setStroke(color.darker()); c.setStrokeWidth(1.5);
+                c.setCenterX(p.getX()); c.setCenterY(p.getY());
+                Group g = new Group(c);
+                if (!ann.getText().isEmpty()) {
+                    Text t = new Text(ann.getText());
+                    t.setX(p.getX() + 10); t.setY(p.getY() + 4);
+                    t.setFill(color);
+                    g.getChildren().add(t);
+                }
+                g.setUserData(ann);
+                mapPane.getChildren().add(g);
+            }
+
+            case TEXT -> {
+                Point2D p = currentProjection.project(pts.get(0));
+                Text t = new Text(ann.getText());
+                t.setX(p.getX()); t.setY(p.getY());
+                t.setFill(color);
+                t.setUserData(ann);
+                mapPane.getChildren().add(t);
+            }
+
+            case LINE -> {
+                if (pts.size() < 2) break;
+                Point2D p1 = currentProjection.project(pts.get(0));
+                Point2D p2 = currentProjection.project(pts.get(1));
+                Line line = new Line(p1.getX(), p1.getY(), p2.getX(), p2.getY());
+                line.setStroke(color);
+                line.setStrokeWidth(ann.getStrokeWidth());
+                line.setUserData(ann);
+                mapPane.getChildren().add(line);
+            }
+
+            case CIRCLE -> {
+                if (pts.size() < 2) break;
+                // Los dos puntos definen el diámetro; el centro es su punto medio
+                Point2D p1 = currentProjection.project(pts.get(0));
+                Point2D p2 = currentProjection.project(pts.get(1));
+                double cx     = (p1.getX() + p2.getX()) / 2.0;
+                double cy     = (p1.getY() + p2.getY()) / 2.0;
+                double radius = Math.hypot(p2.getX() - p1.getX(), p2.getY() - p1.getY()) / 2.0;
+                Circle c = new Circle(radius);
+                c.setCenterX(cx); c.setCenterY(cy);
+                c.setFill(Color.TRANSPARENT);
+                c.setStroke(color);
+                c.setStrokeWidth(ann.getStrokeWidth());
+                c.setUserData(ann);
+                mapPane.getChildren().add(c);
+            }
+        }
+    }
+
+    private void deleteAnnotationNode(javafx.scene.Node node) {
+        Object data = node.getUserData();
+        if (!(data instanceof Annotation ann)) return;
+        boolean ok = app.removeAnnotation(ann);
+        if (ok) {
+            mapPane.getChildren().remove(node);
+            setStatus("✓ Anotación eliminada.");
+        } else {
+            setStatus("✗ No se pudo eliminar la anotación.");
+        }
+    }
+
+    private String colorToHex(Color c) {
+        return String.format("#%02X%02X%02X",
+            (int)(c.getRed() * 255), (int)(c.getGreen() * 255), (int)(c.getBlue() * 255));
+    }
+
+    // ── Construcción del mapa ─────────────────────────────────
+
     private void buildMap(File imgFile) {
         if (!imgFile.exists()) {
-            map_scrollpane.setContent(
-                new Label("Imagen no encontrada: " + imgFile.getPath()));
+            map_scrollpane.setContent(new Label("Imagen no encontrada: " + imgFile.getPath()));
             return;
         }
 
         Image img = new Image(imgFile.toURI().toString());
-        double W = img.getWidth();
-        double H = img.getHeight();
-        // Guardamos las dimensiones para usarlas en drawActivity y en anotaciones
-        mapWidth  = W;
-        mapHeight = H;
-        currentProjection = null; // se recalcula al dibujar la actividad
+        mapWidth  = img.getWidth();
+        mapHeight = img.getHeight();
+        currentProjection = null;
 
         mapPane = new Pane();
-        mapPane.setPrefSize(W, H);
-        mapPane.setMinSize(W, H);
-        mapPane.setMaxSize(W, H);
-
-        ImageView iv = new ImageView(img);
-        iv.setFitWidth(W);
-        iv.setFitHeight(H);
-        mapPane.getChildren().add(iv);
+        mapPane.setPrefSize(mapWidth, mapHeight);
+        mapPane.setMinSize(mapWidth, mapHeight);
+        mapPane.setMaxSize(mapWidth, mapHeight);
+        mapPane.getChildren().add(new ImageView(img));
 
         mapPane.setOnMouseClicked(e -> {
             if (e.getButton() == MouseButton.SECONDARY) {
-                onMapRightClick(e.getX(), e.getY());
-            } else if (e.getButton() == MouseButton.PRIMARY && insertionMode) {
-                insertionMode = false;
-                mapPane.setStyle("");
-                addLabel(e.getX(), e.getY());
+                mapContextMenu.hide();
+                if (selectedActivity != null && currentProjection != null) {
+                    rightClickX = e.getX();
+                    rightClickY = e.getY();
+                    // comprobar si el clic fue sobre una anotación
+                    javafx.scene.Node target = e.getTarget() instanceof javafx.scene.Node n ? n : null;
+                    while (target != null && target != mapPane) {
+                        if (target.getUserData() instanceof Annotation) break;
+                        target = target.getParent();
+                    }
+                    if (target != null && target != mapPane && target.getUserData() instanceof Annotation) {
+                        final javafx.scene.Node annNode = target;
+                        ContextMenu deleteMenu = new ContextMenu();
+                        MenuItem miDelete = new MenuItem("🗑 Eliminar anotación");
+                        miDelete.setOnAction(ev -> deleteAnnotationNode(annNode));
+                        deleteMenu.getItems().add(miDelete);
+                        deleteMenu.show(mapPane.getScene().getWindow(),
+                            mapPane.localToScreen(e.getX(), e.getY()).getX(),
+                            mapPane.localToScreen(e.getX(), e.getY()).getY());
+                    } else {
+                        mapContextMenu.show(mapPane.getScene().getWindow(),
+                            mapPane.localToScreen(e.getX(), e.getY()).getX(),
+                            mapPane.localToScreen(e.getX(), e.getY()).getY());
+                    }
+                }
+            } else if (e.getButton() == MouseButton.PRIMARY && pendingAnnotationType != null) {
+                handleAnnotationClick(e.getX(), e.getY());
             }
         });
 
@@ -272,91 +339,54 @@ public class FXMLDocumentController implements Initializable {
         Group contentGroup = new Group();
         zoomGroup.getChildren().add(mapPane);
         contentGroup.getChildren().add(zoomGroup);
-
         zoomGroup.setScaleX(zoom_slider.getValue());
         zoomGroup.setScaleY(zoom_slider.getValue());
-
         map_scrollpane.setContent(contentGroup);
     }
 
-    // =========================================================
-    //  MENÚ CONTEXTUAL (clic derecho sobre el mapa)
-    // =========================================================
-
-    private void onMapRightClick(double x, double y) {
-        mapContextMenu.hide();
-        mapContextMenu.getItems().get(0).setOnAction(e -> addLabel(x, y));
-        mapContextMenu.getItems().get(1).setOnAction(e -> addCircle(x, y));
-        mapContextMenu.show(
-            mapPane.getScene().getWindow(),
-            mapPane.localToScreen(x, y).getX(),
-            mapPane.localToScreen(x, y).getY()
-        );
-    }
-
-    // =========================================================
-    //  INICIALIZACIÓN
-    // =========================================================
+    // ── Inicialización ────────────────────────────────────────
 
     @Override
     public void initialize(URL url, ResourceBundle rb) {
-        // Slider de zoom
         zoom_slider.setMin(0.5);
         zoom_slider.setMax(2.5);
         zoom_slider.setValue(1.0);
-        zoom_slider.valueProperty().addListener(
-            (obs, oldVal, newVal) -> zoom((Double) newVal)
-        );
+        zoom_slider.valueProperty().addListener((obs, o, n) -> zoom((Double) n));
 
-        // Menú contextual del mapa
-        MenuItem miLabel  = new MenuItem("🏷 Añadir etiqueta");
+        MenuItem miPoint  = new MenuItem("📍 Añadir punto");
+        MenuItem miText   = new MenuItem("📝 Añadir texto");
+        MenuItem miLine   = new MenuItem("📏 Añadir línea");
         MenuItem miCircle = new MenuItem("⭕ Añadir círculo");
-        mapContextMenu = new ContextMenu(miLabel, miCircle);
+        mapContextMenu = new ContextMenu(miPoint, miText, miLine, miCircle);
+        miPoint.setOnAction(e  -> startAnnotation(AnnotationType.POINT));
+        miText.setOnAction(e   -> startAnnotation(AnnotationType.TEXT));
+        miLine.setOnAction(e   -> startAnnotation(AnnotationType.LINE));
+        miCircle.setOnAction(e -> startAnnotation(AnnotationType.CIRCLE));
 
-        // CellFactory: muestra el nombre de la actividad
-        map_listview.setCellFactory(listView -> new ListCell<Activity>() {
-            @Override
-            protected void updateItem(Activity activity, boolean empty) {
-                super.updateItem(activity, empty);
-                if (empty || activity == null) {
-                    setText(null);
-                } else {
-                    setText(activity.getName());
-                }
+        map_listview.setCellFactory(lv -> new ListCell<>() {
+            @Override protected void updateItem(Activity a, boolean empty) {
+                super.updateItem(a, empty);
+                setText((empty || a == null) ? null : a.getName());
             }
         });
 
-        // Nombre del usuario logueado
-        User currentUser = app.getCurrentUser();
-        if (currentUser != null) {
-            usernameLabel.setText("👤 " + currentUser.getNickName());
-            // Cargar actividades del usuario en el ListView
-            List<Activity> actividades = app.getUserActivities();
-            if (actividades != null) {
-                map_listview.getItems().addAll(actividades);
-            }
+        User user = app.getCurrentUser();
+        if (user != null) {
+            usernameLabel.setText("👤 " + user.getNickName());
+            List<Activity> acts = app.getUserActivities();
+            if (acts != null) map_listview.getItems().addAll(acts);
         }
 
-        // Mapa inicial
         buildMap(new File("maps/upv.jpg"));
     }
 
-    // =========================================================
-    //  IMPORTAR GPX (Issue 6)
-    // =========================================================
+    // ── Importar GPX ─────────────────────────────────────────
 
-    /**
-     * Abre un selector de archivo .gpx, lo importa con la librería IPC
-     * y añade la actividad resultante al ListView.
-     * Si la librería encuentra un mapa adecuado, lo carga y dibuja la ruta.
-     */
     @FXML
     private void importarGPX(ActionEvent event) {
         FileChooser fc = new FileChooser();
         fc.setTitle("Seleccionar archivo GPX");
-        fc.getExtensionFilters().add(
-            new FileChooser.ExtensionFilter("Archivos GPX", "*.gpx")
-        );
+        fc.getExtensionFilters().add(new FileChooser.ExtensionFilter("Archivos GPX", "*.gpx"));
         fc.setInitialDirectory(new File("."));
 
         File gpxFile = fc.showOpenDialog(zoom_slider.getScene().getWindow());
@@ -366,50 +396,37 @@ public class FXMLDocumentController implements Initializable {
         if (activity != null) {
             map_listview.getItems().add(activity);
             map_listview.getSelectionModel().select(activity);
+            selectedActivity = activity;
 
             MapRegion region = app.findMapForActivity(activity);
             if (region != null) {
                 buildMap(new File(region.getImagePath()));
                 drawActivity(activity, region);
-                double distKm = activity.getTotalDistance() / 1000.0;
                 setStatus(String.format("✓ GPX importado: %s   |   %.2f km",
-                        activity.getName(), distKm));
+                        activity.getName(), activity.getTotalDistance() / 1000.0));
             } else {
-                setStatus("✓ GPX importado: " + activity.getName() +
-                        " (no se encontró mapa para esta zona)");
+                setStatus("✓ GPX importado: " + activity.getName() + " (sin mapa disponible)");
             }
         } else {
             Alert alert = new Alert(Alert.AlertType.ERROR);
             alert.setTitle("Error al importar");
             alert.setHeaderText("No se pudo importar el archivo GPX");
-            alert.setContentText("Comprueba que el archivo es un GPX válido.");
             alert.showAndWait();
         }
     }
 
-    // =========================================================
-    //  CERRAR SESIÓN
-    // =========================================================
+    // ── Cerrar sesión ─────────────────────────────────────────
 
-    /**
-     * Llama a app.logout() para limpiar la sesión y navega al login.
-     */
     @FXML
     private void cerrarSesion(ActionEvent event) {
         app.logout();
         try {
-            FXMLLoader loader = new FXMLLoader(
-                getClass().getResource("/login/FXMLLogin.fxml"));
-            Pane pane = loader.load();
+            Pane pane = new FXMLLoader(getClass().getResource("/login/FXMLLogin.fxml")).load();
             usernameLabel.getScene().setRoot(pane);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+        } catch (Exception e) { e.printStackTrace(); }
     }
 
-    // =========================================================
-    //  CAMBIAR MAPA
-    // =========================================================
+    // ── Cambiar mapa ──────────────────────────────────────────
 
     @FXML
     private void cambiarMapa(ActionEvent event) throws IOException {
@@ -417,76 +434,26 @@ public class FXMLDocumentController implements Initializable {
         fc.setInitialDirectory(new File("."));
         File imgFile = fc.showOpenDialog(zoom_slider.getScene().getWindow());
         if (imgFile != null) {
+            selectedActivity = null;
             buildMap(imgFile);
-            map_listview.getSelectionModel().clearSelection();
             setStatus("Mapa cambiado: " + imgFile.getName());
         }
     }
 
-    // =========================================================
-    //  DIÁLOGO "ACERCA DE"
-    // =========================================================
+    // ── Acerca de ─────────────────────────────────────────────
 
     @FXML
     private void about(ActionEvent event) {
-        Alert mensaje = new Alert(Alert.AlertType.INFORMATION);
-        Stage dialogStage = (Stage) mensaje.getDialogPane().getScene().getWindow();
-        dialogStage.getIcons().add(
-            new Image(getClass().getResourceAsStream("/resources/logo.png"))
-        );
-        mensaje.setTitle("Acerca de");
-        mensaje.setHeaderText("Running la Safor – IPC 2026");
-        mensaje.setContentText("Aplicación de seguimiento de actividades deportivas.");
-        mensaje.showAndWait();
+        Alert a = new Alert(Alert.AlertType.INFORMATION);
+        ((Stage) a.getDialogPane().getScene().getWindow()).getIcons()
+            .add(new Image(getClass().getResourceAsStream("/resources/logo.png")));
+        a.setTitle("Acerca de");
+        a.setHeaderText("Running la Safor – IPC 2026");
+        a.setContentText("Aplicación de seguimiento de actividades deportivas.");
+        a.showAndWait();
     }
 
-    // =========================================================
-    //  AÑADIR ETIQUETA DE TEXTO AL MAPA (clic derecho)
-    // =========================================================
+    // ── Estado ────────────────────────────────────────────────
 
-    private void addLabel(double x, double y) {
-        Dialog<String> dialog = new Dialog<>();
-        dialog.setTitle("Nueva etiqueta");
-        dialog.setHeaderText("Introduce el texto");
-
-        ButtonType okButton = new ButtonType("Aceptar", ButtonBar.ButtonData.OK_DONE);
-        dialog.getDialogPane().getButtonTypes().addAll(okButton, ButtonType.CANCEL);
-
-        TextField nameField = new TextField();
-        nameField.setPromptText("Texto de la etiqueta");
-        dialog.getDialogPane().setContent(new VBox(8, new Label("Texto:"), nameField));
-
-        dialog.setResultConverter(btn -> btn == okButton ? nameField.getText().trim() : null);
-
-        Optional<String> result = dialog.showAndWait();
-        result.ifPresent(texto -> {
-            if (!texto.isEmpty()) {
-                Text label = new Text(texto);
-                label.setX(x);
-                label.setY(y);
-                label.setFill(Color.DARKBLUE);
-                mapPane.getChildren().add(label);
-            }
-        });
-    }
-
-    // =========================================================
-    //  AÑADIR CÍRCULO AL MAPA (clic derecho)
-    // =========================================================
-
-    private void addCircle(double x, double y) {
-        Circle circle = new Circle(10, Color.RED);
-        circle.setOpacity(0.65);
-        circle.setCenterX(x);
-        circle.setCenterY(y);
-        mapPane.getChildren().add(circle);
-    }
-
-    // =========================================================
-    //  BARRA DE ESTADO
-    // =========================================================
-
-    private void setStatus(String msg) {
-        statusLabel.setText(msg);
-    }
+    private void setStatus(String msg) { statusLabel.setText(msg); }
 }

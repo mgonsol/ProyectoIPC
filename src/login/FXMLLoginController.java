@@ -1,7 +1,3 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/javafx/FXMLController.java to edit this template
- */
 package login;
 
 import java.net.URL;
@@ -12,18 +8,11 @@ import javafx.fxml.FXMLLoader;
 import javafx.fxml.Initializable;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
-import javafx.scene.control.Label;
 import javafx.scene.control.PasswordField;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.Pane;
 import upv.ipc.sportlib.SportActivityApp;
-import upv.ipc.sportlib.User;
 
-/**
- * FXML Controller class
- *
- * @author editor
- */
 public class FXMLLoginController implements Initializable {
 
     @FXML
@@ -33,22 +22,8 @@ public class FXMLLoginController implements Initializable {
     
     SportActivityApp app = SportActivityApp.getInstance();
 
-    /**
-     * Initializes the controller class.
-     */
     @Override
-    public void initialize(URL url, ResourceBundle rb) {
-        // TODO.
-        
-    } 
-    
-    private void checkNickname(){
-        User.checkNickName(nicknameField1.getText());
-    }
-    
-    private void checkPassword() {
-        User.checkPassword(passwordField1.getText());
-    }
+    public void initialize(URL url, ResourceBundle rb) {}
 
     @FXML
     private void autenticarse1(ActionEvent event) {

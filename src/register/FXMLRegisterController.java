@@ -1,7 +1,3 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/javafx/FXMLController.java to edit this template
- */
 package register;
 
 import java.net.URL;
@@ -26,11 +22,6 @@ import javafx.scene.layout.Pane;
 import upv.ipc.sportlib.SportActivityApp;
 import upv.ipc.sportlib.User;
 
-/**
- * FXML Controller class
- *
- * @author editor
- */
 public class FXMLRegisterController implements Initializable {
 
     @FXML
@@ -72,9 +63,6 @@ public class FXMLRegisterController implements Initializable {
 
     SportActivityApp app = SportActivityApp.getInstance();
 
-    /**
-     * Initializes the controller class.
-     */
     @Override
     public void initialize(URL url, ResourceBundle rb) {
             validEmail = new SimpleBooleanProperty();
