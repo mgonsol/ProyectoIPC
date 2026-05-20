@@ -8,6 +8,7 @@
 <?import javafx.scene.control.MenuBar?>
 <?import javafx.scene.control.MenuItem?>
 <?import javafx.scene.control.ScrollPane?>
+<?import javafx.scene.control.Separator?>
 <?import javafx.scene.control.Slider?>
 <?import javafx.scene.control.SplitPane?>
 <?import javafx.scene.image.Image?>
@@ -26,7 +27,7 @@
             <SplitPane fx:id="splitPane" dividerPositions="0.19699727024567792" VBox.vgrow="ALWAYS">
                <items>
                   <ListView fx:id="map_listview" onMouseClicked="#listClicked" prefHeight="399.0" prefWidth="87.0" />
-                  <ScrollPane fx:id="map_scrollpane" hbarPolicy="ALWAYS" onMouseMoved="#showPosition" pannable="true" prefHeight="398.0" prefWidth="358.0" vbarPolicy="ALWAYS">
+                  <ScrollPane fx:id="map_scrollpane" hbarPolicy="ALWAYS" pannable="true" prefHeight="398.0" prefWidth="358.0" vbarPolicy="ALWAYS">
                      <content>
                         <Pane>
                            <children>
@@ -45,23 +46,31 @@
       </VBox>
    </center>
    <top>
-      <HBox alignment="CENTER_RIGHT" fillHeight="false" spacing="5.0" BorderPane.alignment="CENTER">
+      <HBox alignment="CENTER_LEFT" fillHeight="false" spacing="5.0" BorderPane.alignment="CENTER">
          <children>
             <MenuBar>
-              <menus>
-                <Menu mnemonicParsing="false" text="Ayuda">
-                  <items>
-                    <MenuItem mnemonicParsing="false" onAction="#about" text="Acerca de" />
-                  </items>
-                </Menu>
-              </menus>
+               <menus>
+                  <Menu mnemonicParsing="false" text="Importar">
+                     <items>
+                        <MenuItem mnemonicParsing="false" onAction="#cambiarMapa" text="Cambiar mapa" />
+                        <MenuItem mnemonicParsing="false" onAction="#importarGPX" text="Importar GPX" />
+                     </items>
+                  </Menu>
+                  <Menu mnemonicParsing="false" text="Ayuda">
+                     <items>
+                        <MenuItem mnemonicParsing="false" onAction="#about" text="Acerca de" />
+                     </items>
+                  </Menu>
+               </menus>
             </MenuBar>
-            <Button mnemonicParsing="false" onAction="#cambiarMapa" text="Cambiar mapa" />
             <Region HBox.hgrow="ALWAYS" />
             <Label text="Zoom" />
             <Button mnemonicParsing="false" onAction="#zoomOut" text="-" />
             <Slider fx:id="zoom_slider" HBox.hgrow="SOMETIMES" />
-            <Button layoutX="10.0" layoutY="10.0" mnemonicParsing="false" onAction="#zoomIn" text="+" />
+            <Button mnemonicParsing="false" onAction="#zoomIn" text="+" />
+            <Separator orientation="VERTICAL" />
+            <Label fx:id="usernameLabel" text="Usuario" />
+            <Button mnemonicParsing="false" onAction="#cerrarSesion" text="Cerrar sesión" />
          </children>
          <BorderPane.margin>
             <Insets bottom="6.0" left="6.0" right="6.0" top="6.0" />
@@ -69,9 +78,9 @@
       </HBox>
    </top>
    <bottom>
-      <HBox alignment="CENTER_RIGHT" BorderPane.alignment="CENTER">
+      <HBox alignment="CENTER_LEFT" BorderPane.alignment="CENTER">
          <children>
-            <Label fx:id="mousePosition" minHeight="-Infinity" minWidth="-Infinity" text="SceneX:     ScenY:     " wrapText="true" HBox.hgrow="ALWAYS" />
+            <Label fx:id="statusLabel" minHeight="-Infinity" minWidth="-Infinity" text="" wrapText="true" HBox.hgrow="ALWAYS" />
          </children>
          <BorderPane.margin>
             <Insets bottom="6.0" left="6.0" right="6.0" top="6.0" />
