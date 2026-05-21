@@ -6,6 +6,11 @@
         <group name="Entrega proyecto IPC">
             <file>file:/C:/Users/jsole/Desktop/2026/IPC/entrega/FINAL/POI_UPV/src/poiupv/FXMLDocumentController.java</file>
         </group>
-        <group/>
+        <group>
+            <file>file:/C:/Users/Usuario/Documents/NetBeansProjects/ProyectoIPC/src/mapademo/FXMLDocumentController.java</file>
+            <file>file:/C:/Users/Usuario/Documents/NetBeansProjects/ProyectoIPC/src/mapademo/MapaDemoApp.java</file>
+            <file>file:/C:/Users/Usuario/Documents/NetBeansProjects/ProyectoIPC/src/login/FXMLLoginController.java</file>
+            <file>file:/C:/Users/Usuario/Documents/NetBeansProjects/ProyectoIPC/src/register/FXMLRegisterController.java</file>
+        </group>
     </open-files>
 </project-private>

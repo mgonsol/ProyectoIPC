@@ -106,41 +106,86 @@ public class FXMLDocumentController implements Initializable {
         drawActivity(selected, region);
         for (Annotation ann : selected.getAnnotations()) drawAnnotation(ann);
 
-        double distKm  = selected.getTotalDistance() / 1000.0;
-        long   minutos = selected.getDuration().toMinutes();
-        setStatus(String.format("📍 %s   |   %.2f km   |   %d min",
-                selected.getName(), distKm, minutos));
+        double distKm = selected.getTotalDistance() / 1000.0;
+        long totalSegundos = selected.getDuration().toSeconds();
+        long min = totalSegundos / 60;
+        long seg = totalSegundos % 60;
+
+        double velMedia = selected.getAverageSpeed();
+        double ritmoMedio = selected.getAveragePace(); 
+        double desPlus = selected.getElevationGain();
+        double desMinus = selected.getElevationLoss();
+        double altMin = selected.getMinElevation();
+        double altMax = selected.getMaxElevation();
+
+        setStatus(String.format(
+            "📍 %s | 📏 %.2f km | ⏱ %d:%02d min | 🚀 Vel. Media: %.1f km/h (Ritmo: %.2f min/km) | 📈 Desn+: %.0fm Desn-: %.0fm | 🏔 Alt: %.0fm - %.0fm",
+            selected.getName(), distKm, min, seg, velMedia, ritmoMedio, desPlus, desMinus, altMin, altMax
+        ));
     }
 
     // ── Dibujar ruta ─────────────────────────────────────────
 
     private void drawActivity(Activity activity, MapRegion region) {
         List<TrackPoint> pts = activity.getTrackPoints();
-        if (pts == null || pts.isEmpty()) { setStatus("La actividad no tiene puntos GPS."); return; }
+if (pts == null || pts.isEmpty()) { 
+    setStatus("La actividad no tiene puntos GPS."); 
+    return; 
+}
 
-        currentProjection = new MapProjection(region, mapWidth, mapHeight);
+currentProjection = new MapProjection(region, mapWidth, mapHeight);
 
-        Polyline ruta = new Polyline();
-        ruta.setStroke(Color.BLUE);
-        ruta.setStrokeWidth(3.5);
-        ruta.setFill(Color.TRANSPARENT);
-        for (TrackPoint tp : pts) {
-            Point2D p = currentProjection.project(tp);
-            ruta.getPoints().addAll(p.getX(), p.getY());
-        }
-        mapPane.getChildren().add(ruta);
+for (int i = 0; i < pts.size() - 1; i++) {
+    TrackPoint actual = pts.get(i);
+    TrackPoint siguiente = pts.get(i + 1);
 
-        Point2D inicio = currentProjection.project(pts.get(0));
-        Circle ci = new Circle(8, Color.LIMEGREEN);
-        ci.setStroke(Color.DARKGREEN); ci.setStrokeWidth(2);
-        ci.setCenterX(inicio.getX()); ci.setCenterY(inicio.getY());
+    Point2D p1 = currentProjection.project(actual);
+    Point2D p2 = currentProjection.project(siguiente);
 
-        Point2D fin = currentProjection.project(pts.get(pts.size() - 1));
-        Circle cf = new Circle(8, Color.TOMATO);
-        cf.setStroke(Color.DARKRED); cf.setStrokeWidth(2);
-        cf.setCenterX(fin.getX()); cf.setCenterY(fin.getY());
+    Line segmento = new Line(p1.getX(), p1.getY(), p2.getX(), p2.getY());
+    segmento.setStrokeWidth(4.0);
 
-        mapPane.getChildren().addAll(ci, cf);
+    double velocidadTramo = actual.speedTo(siguiente); 
+
+    if (velocidadTramo < 6.0) {
+        segmento.setStroke(Color.TOMATO);          
+    } else if (velocidadTramo < 12.0) {
+        segmento.setStroke(Color.ORANGE);          
+    } else {
+        segmento.setStroke(Color.LIMEGREEN);       
+    }
+
+    mapPane.getChildren().add(segmento);
+}
+
+Point2D inicio = currentProjection.project(pts.get(0));
+Circle ci = new Circle(8, Color.GREEN);
+ci.setStroke(Color.WHITE); ci.setStrokeWidth(2);
+ci.setCenterX(inicio.getX()); ci.setCenterY(inicio.getY());
+
+Point2D fin = currentProjection.project(pts.get(pts.size() - 1));
+Circle cf = new Circle(8, Color.RED);
+cf.setStroke(Color.WHITE); cf.setStrokeWidth(2);
+cf.setCenterX(fin.getX()); cf.setCenterY(fin.getY());
+
+mapPane.getChildren().addAll(ci, cf);
+
+double distKm = activity.getTotalDistance() / 1000.0;
+long totalSegundos = activity.getDuration().toSeconds();
+long min = totalSegundos / 60;
+long seg = totalSegundos % 60;
+
+double velMedia = activity.getAverageSpeed();
+double ritmoMedio = activity.getAveragePace(); 
+double desPlus = activity.getElevationGain();
+double desMinus = activity.getElevationLoss();
+double altMin = activity.getMinElevation();
+double altMax = activity.getMaxElevation();
+
+setStatus(String.format(
+    "📍 %s | 📏 %.2f km | ⏱ %d:%02d min | 🚀 Vel. Media: %.1f km/h (Ritmo: %.2f min/km) | 📈 Desn+: %.0fm Desn-: %.0fm | 🏔 Alt: %.0fm - %.0fm",
+    activity.getName(), distKm, min, seg, velMedia, ritmoMedio, desPlus, desMinus, altMin, altMax
+));
     }
 
     // ── Anotaciones ──────────────────────────────────────────
@@ -377,7 +422,7 @@ public class FXMLDocumentController implements Initializable {
             if (acts != null) map_listview.getItems().addAll(acts);
         }
 
-        buildMap(new File("maps/upv.jpg"));
+        buildMap(new File("maps/valencia.jpg"));
     }
 
     // ── Importar GPX ─────────────────────────────────────────
