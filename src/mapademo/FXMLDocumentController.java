@@ -47,9 +47,13 @@ import upv.ipc.sportlib.AnnotationType;
 import upv.ipc.sportlib.GeoPoint;
 import upv.ipc.sportlib.MapProjection;
 import upv.ipc.sportlib.MapRegion;
+import upv.ipc.sportlib.Session;
 import upv.ipc.sportlib.SportActivityApp;
 import upv.ipc.sportlib.TrackPoint;
 import upv.ipc.sportlib.User;
+import javafx.stage.FileChooser;
+import java.io.File;
+import javafx.stage.Window;
 
 public class FXMLDocumentController implements Initializable {
 
@@ -69,7 +73,7 @@ public class FXMLDocumentController implements Initializable {
     private GeoPoint       firstAnnotationPoint  = null;
     private double         rightClickX, rightClickY;
 
-    @FXML private ListView<Activity> map_listview;
+    @FXML private ListView<Object> map_listview;
     @FXML private ScrollPane         map_scrollpane;
     @FXML private Slider             zoom_slider;
     @FXML private SplitPane          splitPane;
@@ -94,17 +98,22 @@ public class FXMLDocumentController implements Initializable {
 
     @FXML
     void listClicked(MouseEvent event) {
-        Activity selected = map_listview.getSelectionModel().getSelectedItem();
-        if (selected == null) return;
+        // Obtenemos el elemento seleccionado sin asumir qué tipo de objeto es
+        Object selectedItem = map_listview.getSelectionModel().getSelectedItem();
+        if (selectedItem == null) return;
 
-        selectedActivity = selected;
+        // CASO 1: Han hecho clic en una ACTIVIDAD
+        if (selectedItem instanceof Activity) {
+            Activity selected = (Activity) selectedItem;
+            selectedActivity = selected;
 
-        MapRegion region = app.findMapForActivity(selected);
-        if (region == null) { setStatus("No se encontró mapa para esta actividad."); return; }
+            MapRegion region = app.findMapForActivity(selected);
+            if (region == null) { setStatus("No se encontró mapa para esta actividad."); return; }
 
-        buildMap(new File(region.getImagePath()));
-        drawActivity(selected, region);
-        for (Annotation ann : selected.getAnnotations()) drawAnnotation(ann);
+            // Usamos tu método buildMap que ya tienes programado
+            buildMap(new File(region.getImagePath()));
+            drawActivity(selected, region);
+            for (Annotation ann : selected.getAnnotations()) drawAnnotation(ann);
 
         double distKm = selected.getTotalDistance() / 1000.0;
         long totalSegundos = selected.getDuration().toSeconds();
@@ -122,6 +131,33 @@ public class FXMLDocumentController implements Initializable {
             "📍 %s | 📏 %.2f km | ⏱ %d:%02d min | 🚀 Vel. Media: %.1f km/h (Ritmo: %.2f min/km) | 📈 Desn+: %.0fm Desn-: %.0fm | 🏔 Alt: %.0fm - %.0fm",
             selected.getName(), distKm, min, seg, velMedia, ritmoMedio, desPlus, desMinus, altMin, altMax
         ));
+            double distKm  = selected.getTotalDistance() / 1000.0;
+            long   minutos = selected.getDuration().toMinutes();
+            setStatus(String.format("📍 %s   |   %.2f km   |   %d min",
+                    selected.getName(), distKm, minutos));
+        } 
+        
+        // CASO 2: Han hecho clic en un MAPA
+        else if (selectedItem instanceof MapRegion) {
+            MapRegion region = (MapRegion) selectedItem;
+            
+            // Limpiamos la actividad seleccionada para que no intente dibujar rutas raras
+            selectedActivity = null; 
+            
+            // Llamamos directamente a tu método buildMap con la ruta de la imagen
+            buildMap(new File(region.getImagePath()));
+            
+            setStatus("🗺️ Mostrando mapa limpio: " + region.getName());
+        } 
+        
+        // CASO 3: Han hecho clic en una SESIÓN
+        else if (selectedItem instanceof Session) {
+            Session session = (Session) selectedItem;
+            
+            // En las sesiones no hay mapa que mostrar, así que solo actualizamos la barra inferior
+            long minutos = session.getDuration().toMinutes();
+            setStatus("💻 Sesión visualizada. Duración total: " + minutos + " minutos");
+        }
     }
 
     // ── Dibujar ruta ─────────────────────────────────────────
@@ -393,6 +429,34 @@ setStatus(String.format(
 
     @Override
     public void initialize(URL url, ResourceBundle rb) {
+        map_listview.setCellFactory(lv -> new ListCell<Object>() {
+            @Override
+            protected void updateItem(Object a, boolean empty) {
+                super.updateItem(a, empty);
+
+                // 1. Si la celda está vacía o el objeto es nulo, la dejamos en blanco
+                if (empty || a == null) {
+                    setText(null);
+                } 
+                // 2. Si el objeto que entra es una Actividad...
+                else if (a instanceof Activity) {
+                    Activity act = (Activity) a; // Hacemos el cast
+                    setText(act.getName()); // Aquí sí funciona el getName()
+                } 
+                // 3. Si el objeto que entra es una Sesión...
+                else if (a instanceof Session) {
+                    Session ses = (Session) a;
+                    // Como no tiene getName(), usamos su fecha de inicio para identificarla
+                    setText("Sesión del " + ses.getStartTime());
+                } 
+                // 4. Si el objeto que entra es un Mapa...
+                else if (a instanceof MapRegion) {
+                    MapRegion map = (MapRegion) a;
+                    setText(map.getName()); // Aquí también funciona el getName()
+                }
+            }
+        });
+        
         zoom_slider.setMin(0.5);
         zoom_slider.setMax(2.5);
         zoom_slider.setValue(1.0);
@@ -408,12 +472,6 @@ setStatus(String.format(
         miLine.setOnAction(e   -> startAnnotation(AnnotationType.LINE));
         miCircle.setOnAction(e -> startAnnotation(AnnotationType.CIRCLE));
 
-        map_listview.setCellFactory(lv -> new ListCell<>() {
-            @Override protected void updateItem(Activity a, boolean empty) {
-                super.updateItem(a, empty);
-                setText((empty || a == null) ? null : a.getName());
-            }
-        });
 
         User user = app.getCurrentUser();
         if (user != null) {
@@ -501,4 +559,91 @@ setStatus(String.format(
     // ── Estado ────────────────────────────────────────────────
 
     private void setStatus(String msg) { statusLabel.setText(msg); }
+
+    @FXML
+    private void mostrarSesiones(ActionEvent event) {
+        // 1. Mantener tu lógica actual de rellenar la lista de la izquierda
+        User usuarioActual = app.getCurrentUser(); 
+        if (usuarioActual != null) {
+            List<Session> sesiones = app.getSessionsByUser(usuarioActual);
+            map_listview.getItems().clear();
+            map_listview.getItems().addAll(sesiones);
+        }
+
+        // 2. CAMBIO DE VISTA: Cargar el menú de sesiones en el centro
+        try {
+            // Cargamos el archivo FXML de la nueva vista
+            Pane nuevaVista = FXMLLoader.load(getClass().getResource("/sesiones/FXMLSesiones.fxml"));
+            
+            // Reemplazamos el mapa del centro por este nuevo panel
+            map_scrollpane.setContent(nuevaVista);
+            
+            setStatus("Mostrando panel de control de Sesiones.");
+        } catch (Exception e) {
+            System.out.println("Error al cargar VistaMenuSesiones.fxml: " + e.getMessage());
+            e.printStackTrace();
+        }
+    }
+
+    @FXML
+    private void mostrarMapas(ActionEvent event) {
+        // Recuperamos todas las regiones de mapas registradas [cite: 276]
+        List<MapRegion> mapas = app.getMapRegions(); 
+        
+        // Limpiamos la lista y añadimos los mapas
+        map_listview.getItems().clear();
+        map_listview.getItems().addAll(mapas);
+    }
+
+    @FXML
+    private void mostrarActividades() {
+        // 1. Mantener tu lógica actual de la lista
+        List<Activity> actividades = app.getUserActivities();
+        map_listview.getItems().clear();
+        map_listview.getItems().addAll(actividades);
+
+        // 2. CAMBIO DE VISTA: Cargar el menú de actividades en el centro
+        try {
+            Pane nuevaVista = FXMLLoader.load(getClass().getResource("/actividades/FXMLActividades.fxml"));
+            map_scrollpane.setContent(nuevaVista);
+            
+            setStatus("Mostrando panel de control de Actividades.");
+        } catch (Exception e) {
+            System.out.println("Error al cargar VistaMenuActividades.fxml: " + e.getMessage());
+        }
+    }
+
+    @FXML
+    private void añadirActividad(ActionEvent event) {
+        // Creamos el explorador de archivos
+        FileChooser fileChooser = new FileChooser();
+        fileChooser.setTitle("Seleccionar ruta deportiva (GPX)");
+        
+        // Ponemos un filtro para que el usuario solo pueda elegir archivos .gpx
+        fileChooser.getExtensionFilters().add(
+            new FileChooser.ExtensionFilter("Archivos GPS (*.gpx)", "*.gpx")
+        );
+
+        // Obtenemos la ventana actual de la aplicación (necesario para mostrar el diálogo)
+        Window ventanaActual = map_listview.getScene().getWindow();
+        
+        // Abrimos la ventana y esperamos a que el usuario seleccione un archivo
+        File archivoSeleccionado = fileChooser.showOpenDialog(ventanaActual);
+
+        // Si el usuario seleccionó un archivo (es decir, no le dio a "Cancelar")
+        if (archivoSeleccionado != null) {
+            
+            // Usamos la librería para importar el archivo GPX a la base de datos
+            Activity nuevaActividad = app.importActivity(archivoSeleccionado);
+            
+            if (nuevaActividad != null) {
+                System.out.println("¡Éxito! Actividad importada: " + nuevaActividad.getName());
+                
+                // Refrescamos automáticamente la lista para que el usuario vea su nueva actividad
+                mostrarActividades(); 
+            } else {
+                System.out.println("Hubo un error al intentar procesar el archivo GPX.");
+            }
+        }
+    }
 }

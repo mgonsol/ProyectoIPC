@@ -19,19 +19,18 @@
 <?import javafx.scene.layout.Region?>
 <?import javafx.scene.layout.VBox?>
 
-
-<BorderPane xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="mapademo.FXMLDocumentController">
+<BorderPane xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" fx:controller="mapademo.FXMLDocumentController">
    <center>
       <VBox prefHeight="556.0" prefWidth="853.0" stylesheets="@../resources/estilos.css">
          <children>
-            <SplitPane fx:id="splitPane" dividerPositions="0.19699727024567792" VBox.vgrow="ALWAYS">
+            <SplitPane fx:id="splitPane" dividerPositions="0.19699727024567792" prefHeight="556.0" prefWidth="722.0" VBox.vgrow="ALWAYS">
                <items>
-                  <ListView fx:id="map_listview" onMouseClicked="#listClicked" prefHeight="399.0" prefWidth="87.0" />
+                  <ListView fx:id="map_listview" onMouseClicked="#listClicked" prefHeight="554.0" prefWidth="426.0" />
                   <ScrollPane fx:id="map_scrollpane" hbarPolicy="ALWAYS" pannable="true" prefHeight="398.0" prefWidth="358.0" vbarPolicy="ALWAYS">
                      <content>
                         <Pane>
                            <children>
-                              <ImageView pickOnBounds="true">
+                              <ImageView fitWidth="1565.0" layoutX="-50.0" pickOnBounds="true">
                                  <image>
                                     <Image url="@../resources/upv.jpg" />
                                  </image>
@@ -87,4 +86,14 @@
          </BorderPane.margin>
       </HBox>
    </bottom>
+   <left>
+      <VBox alignment="CENTER" prefHeight="556.0" prefWidth="190.0" spacing="100.0" BorderPane.alignment="CENTER">
+         <children>
+            <Button alignment="CENTER" maxWidth="-Infinity" mnemonicParsing="false" onAction="#mostrarActividades" prefWidth="150.0" text="Actividades" />
+            <Button maxWidth="-Infinity" mnemonicParsing="false" onAction="#mostrarSesiones" prefWidth="150.0" text="Sesiones" />
+            <Button maxWidth="-Infinity" mnemonicParsing="false" onAction="#mostrarMapas" prefWidth="150.0" text="Mapas" />
+            <Button maxWidth="-Infinity" mnemonicParsing="false" onAction="#añadirActividad" prefWidth="150.0" text="Añadir actividad" />
+         </children>
+      </VBox>
+   </left>
 </BorderPane>
