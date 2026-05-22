@@ -25,12 +25,12 @@
          <children>
             <SplitPane fx:id="splitPane" dividerPositions="0.19699727024567792" prefHeight="556.0" prefWidth="722.0" VBox.vgrow="ALWAYS">
                <items>
-                  <ListView fx:id="map_listview" onMouseClicked="#listClicked" prefHeight="554.0" prefWidth="426.0" />
+                  <ListView fx:id="map_listview" minWidth="-Infinity" onMouseClicked="#listClicked" prefHeight="554.0" prefWidth="247.0" />
                   <ScrollPane fx:id="map_scrollpane" hbarPolicy="ALWAYS" pannable="true" prefHeight="398.0" prefWidth="358.0" vbarPolicy="ALWAYS">
                      <content>
-                        <Pane>
+                        <Pane prefHeight="1050.0" prefWidth="1442.0">
                            <children>
-                              <ImageView fitWidth="1565.0" layoutX="-50.0" pickOnBounds="true">
+                              <ImageView fitWidth="1498.0" layoutX="-50.0" pickOnBounds="true">
                                  <image>
                                     <Image url="@../resources/upv.jpg" />
                                  </image>
@@ -69,7 +69,7 @@
             <Button mnemonicParsing="false" onAction="#zoomIn" text="+" />
             <Separator orientation="VERTICAL" />
             <Label fx:id="usernameLabel" text="Usuario" />
-            <Button mnemonicParsing="false" onAction="#cerrarSesion" text="Cerrar sesión" />
+            <Button mnemonicParsing="false" onAction="#perfil" text="Perfil" />
          </children>
          <BorderPane.margin>
             <Insets bottom="6.0" left="6.0" right="6.0" top="6.0" />
@@ -89,10 +89,10 @@
    <left>
       <VBox alignment="CENTER" prefHeight="556.0" prefWidth="190.0" spacing="100.0" BorderPane.alignment="CENTER">
          <children>
-            <Button alignment="CENTER" maxWidth="-Infinity" mnemonicParsing="false" onAction="#mostrarActividades" prefWidth="150.0" text="Actividades" />
-            <Button maxWidth="-Infinity" mnemonicParsing="false" onAction="#mostrarSesiones" prefWidth="150.0" text="Sesiones" />
-            <Button maxWidth="-Infinity" mnemonicParsing="false" onAction="#mostrarMapas" prefWidth="150.0" text="Mapas" />
-            <Button maxWidth="-Infinity" mnemonicParsing="false" onAction="#añadirActividad" prefWidth="150.0" text="Añadir actividad" />
+            <Button alignment="CENTER" maxWidth="-Infinity" mnemonicParsing="false" onAction="#mostrarActividades" prefHeight="50.0" prefWidth="150.0" text="Actividades" />
+            <Button maxWidth="-Infinity" mnemonicParsing="false" onAction="#mostrarSesiones" prefHeight="50.0" prefWidth="150.0" text="Sesiones" />
+            <Button maxWidth="-Infinity" mnemonicParsing="false" onAction="#mostrarMapas" prefHeight="50.0" prefWidth="150.0" text="Mapas" />
+            <Button maxWidth="-Infinity" mnemonicParsing="false" onAction="#añadirActividad" prefHeight="50.0" prefWidth="150.0" text="Añadir actividad" />
          </children>
       </VBox>
    </left>

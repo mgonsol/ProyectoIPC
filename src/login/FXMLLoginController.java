@@ -8,6 +8,7 @@ import javafx.fxml.FXMLLoader;
 import javafx.fxml.Initializable;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
+import javafx.scene.control.Label;
 import javafx.scene.control.PasswordField;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.Pane;
@@ -21,12 +22,14 @@ public class FXMLLoginController implements Initializable {
     private TextField nicknameField1;
     
     SportActivityApp app = SportActivityApp.getInstance();
+    @FXML
+    private Label passwordError;
 
     @Override
     public void initialize(URL url, ResourceBundle rb) {}
 
     @FXML
-    private void autenticarse1(ActionEvent event) {
+    private void autenticarse(ActionEvent event) {
         if (app.login(nicknameField1.getText(), passwordField1.getText())) {
             try {
                 FXMLLoader loader = new FXMLLoader(getClass().getResource("/mapademo/FXMLDocument.fxml"));
@@ -44,6 +47,11 @@ public class FXMLLoginController implements Initializable {
     }
 
     @FXML
+    private void cancel(ActionEvent event) {
+        System.exit(0);
+    }
+
+    @FXML
     private void irARegistro(ActionEvent event) {
         try {
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/register/FXMLRegister.fxml"));
@@ -54,8 +62,4 @@ public class FXMLLoginController implements Initializable {
         }
     }
 
-    @FXML
-    private void cancel1(ActionEvent event) {
-        System.exit(0);
-    }
 }

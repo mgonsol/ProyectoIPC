@@ -53,6 +53,8 @@ import upv.ipc.sportlib.TrackPoint;
 import upv.ipc.sportlib.User;
 import javafx.stage.FileChooser;
 import java.io.File;
+import javafx.scene.Scene;
+import javafx.stage.Modality;
 import javafx.stage.Window;
 
 public class FXMLDocumentController implements Initializable {
@@ -131,7 +133,6 @@ public class FXMLDocumentController implements Initializable {
             "📍 %s | 📏 %.2f km | ⏱ %d:%02d min | 🚀 Vel. Media: %.1f km/h (Ritmo: %.2f min/km) | 📈 Desn+: %.0fm Desn-: %.0fm | 🏔 Alt: %.0fm - %.0fm",
             selected.getName(), distKm, min, seg, velMedia, ritmoMedio, desPlus, desMinus, altMin, altMax
         ));
-            double distKm  = selected.getTotalDistance() / 1000.0;
             long   minutos = selected.getDuration().toMinutes();
             setStatus(String.format("📍 %s   |   %.2f km   |   %d min",
                     selected.getName(), distKm, minutos));
@@ -520,7 +521,6 @@ setStatus(String.format(
 
     // ── Cerrar sesión ─────────────────────────────────────────
 
-    @FXML
     private void cerrarSesion(ActionEvent event) {
         app.logout();
         try {
@@ -644,6 +644,41 @@ setStatus(String.format(
             } else {
                 System.out.println("Hubo un error al intentar procesar el archivo GPX.");
             }
+        }
+    }
+
+    @FXML
+    private void perfil(ActionEvent event) throws IOException {
+        try {
+        // 1. Cargamos el archivo FXML de la nueva interfaz de perfil
+        FXMLLoader loader = new FXMLLoader(getClass().getResource("/modificarPerfil/FXMLModificarPerfil.fxml"));
+        Pane root = loader.load();
+        
+        // 2. Creamos un nuevo escenario (Stage) para la ventana secundaria
+        Stage ventanaPerfil = new Stage();
+        ventanaPerfil.setTitle("Modificar Perfil de Usuario");
+        
+        // 3. Hacemos que sea modal (bloquea la ventana principal mientras esté abierta)
+        ventanaPerfil.initModality(Modality.WINDOW_MODAL);
+        ventanaPerfil.initOwner(map_listview.getScene().getWindow());
+        
+        // 4. Asignamos la escena y mostramos la ventana
+        Scene scene = new Scene(root);
+        ventanaPerfil.setScene(scene);
+        
+        // Usamos showAndWait() para que el programa "espere" a que se cierre
+        ventanaPerfil.showAndWait();
+        
+        // Opcional: Cuando se cierre la ventana, podemos refrescar el nombre de usuario
+        // por si acaso lo cambiase (aunque el nick es fijo, el avatar o datos sí cambian)
+        User user = app.getCurrentUser();
+        if (user != null) {
+            usernameLabel.setText("👤 " + user.getNickName());
+        }
+        
+        } catch (Exception e) {
+            System.out.println("Error al abrir la ventana de modificar perfil: " + e.getMessage());
+            e.printStackTrace();
         }
     }
 }
