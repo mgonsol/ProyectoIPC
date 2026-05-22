@@ -13,6 +13,10 @@ import javafx.scene.control.DatePicker;
 import javafx.scene.control.Label;
 import javafx.scene.control.PasswordField;
 import javafx.scene.control.TextField;
+import javafx.scene.control.Alert;
+import javafx.fxml.FXMLLoader;
+import javafx.scene.layout.Pane;
+import javafx.fxml.FXMLLoader;
 
 /**
  * FXML Controller class
@@ -42,6 +46,7 @@ public class FXMLRegisterController implements Initializable {
     @FXML
     private Label dateError;
 
+    private String rutaAvatarRegistro = "";
     /**
      * Initializes the controller class.
      */
@@ -54,8 +59,32 @@ public class FXMLRegisterController implements Initializable {
     private void auntenticarse(ActionEvent event) {
     }
 
+    
+
     @FXML
     private void register(ActionEvent event) {
+        // Llamamos directamente a la librería con su ruta completa para evitar fallos de variables
+        boolean ok = upv.ipc.sportlib.SportActivityApp.getInstance().registerUser(
+                    nicknameField.getText(), emailField.getText(), 
+                    passwordField.getText(), dateField.getValue(), rutaAvatarRegistro);
+        if (ok) {
+            Alert alert = new Alert(Alert.AlertType.INFORMATION);
+            alert.setTitle("Registro completado");
+            alert.setHeaderText("¡Usuario creado correctamente!");
+            alert.setContentText("Ya puedes iniciar sesión con tu cuenta.");
+            alert.showAndWait();
+            try {
+                javafx.scene.layout.Pane pane = FXMLLoader.load(getClass().getResource("/login/FXMLLogin.fxml"));
+                nicknameField.getScene().setRoot(pane);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        } else {
+            Alert alert = new Alert(Alert.AlertType.ERROR);
+            alert.setTitle("Error");
+            alert.setHeaderText("No se pudo registrar el usuario");
+            alert.showAndWait();
+        }
     }
 
     @FXML

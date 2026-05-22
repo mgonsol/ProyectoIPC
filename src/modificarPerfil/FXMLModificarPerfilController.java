@@ -56,8 +56,28 @@ public class FXMLModificarPerfilController implements Initializable {
      */
     @Override
     public void initialize(URL url, ResourceBundle rb) {
-        // TODO
-    }    
+        User usuarioActual = app.getCurrentUser();
+        if (usuarioActual != null) {
+            newNickname.setText(usuarioActual.getNickName());
+            newNickname.setEditable(false); 
+            newMail.setText(usuarioActual.getEmail());
+            
+           
+            newDate.setValue(LocalDate.now().minusYears(18)); 
+            
+            if (usuarioActual.getAvatarPath() != null && !usuarioActual.getAvatarPath().isEmpty()) {
+                try {
+                    File file = new File(usuarioActual.getAvatarPath());
+                    if (file.exists()) {
+                        avatar.setImage(new Image(file.toURI().toString()));
+                        rutaAvatarActual = usuarioActual.getAvatarPath();
+                    }
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+    }   
 
     @FXML
     private void cerrarSesion(ActionEvent event) {
@@ -151,7 +171,8 @@ public class FXMLModificarPerfilController implements Initializable {
 
     @FXML
     private void cancel1(ActionEvent event) {
-        System.exit(0);
+        Stage ventanaActual = (Stage) newMail.getScene().getWindow();
+        ventanaActual.close();
     }
 
     @FXML

@@ -56,6 +56,10 @@ import java.io.File;
 import javafx.scene.Scene;
 import javafx.stage.Modality;
 import javafx.stage.Window;
+import javafx.scene.chart.AreaChart;
+import javafx.scene.chart.NumberAxis;
+import javafx.scene.chart.XYChart;
+
 
 public class FXMLDocumentController implements Initializable {
 
@@ -112,32 +116,29 @@ public class FXMLDocumentController implements Initializable {
             MapRegion region = app.findMapForActivity(selected);
             if (region == null) { setStatus("No se encontró mapa para esta actividad."); return; }
 
-            // Usamos tu método buildMap que ya tienes programado
             buildMap(new File(region.getImagePath()));
             drawActivity(selected, region);
             for (Annotation ann : selected.getAnnotations()) drawAnnotation(ann);
 
-        double distKm = selected.getTotalDistance() / 1000.0;
-        long totalSegundos = selected.getDuration().toSeconds();
-        long min = totalSegundos / 60;
-        long seg = totalSegundos % 60;
+            double distKm = selected.getTotalDistance() / 1000.0;
+            long totalSegundos = selected.getDuration().toSeconds();
+            long min = totalSegundos / 60;
+            long seg = totalSegundos % 60;
 
-        double velMedia = selected.getAverageSpeed();
-        double ritmoMedio = selected.getAveragePace(); 
-        double desPlus = selected.getElevationGain();
-        double desMinus = selected.getElevationLoss();
-        double altMin = selected.getMinElevation();
-        double altMax = selected.getMaxElevation();
+            double velMedia = selected.getAverageSpeed();
+            double ritmoMedio = selected.getAveragePace(); 
+            double desPlus = selected.getElevationGain();
+            double desMinus = selected.getElevationLoss();
+            double altMin = selected.getMinElevation();
+            double altMax = selected.getMaxElevation();
 
-        setStatus(String.format(
-            "📍 %s | 📏 %.2f km | ⏱ %d:%02d min | 🚀 Vel. Media: %.1f km/h (Ritmo: %.2f min/km) | 📈 Desn+: %.0fm Desn-: %.0fm | 🏔 Alt: %.0fm - %.0fm",
-            selected.getName(), distKm, min, seg, velMedia, ritmoMedio, desPlus, desMinus, altMin, altMax
-        ));
-            long   minutos = selected.getDuration().toMinutes();
-            setStatus(String.format("📍 %s   |   %.2f km   |   %d min",
-                    selected.getName(), distKm, minutos));
-        } 
-        
+            setStatus(String.format(
+                "📍 %s | 📏 %.2f km | ⏱ %d:%02d min | 🚀 Vel. Media: %.1f km/h (Ritmo: %.2f min/km) | 📈 Desn+: %.0fm Desn-: %.0fm | 🏔 Alt: %.0fm - %.0fm",
+                selected.getName(), distKm, min, seg, velMedia, ritmoMedio, desPlus, desMinus, altMin, altMax
+            ));
+            
+            mostrarGraficaDesnivel(selected);
+        }
         // CASO 2: Han hecho clic en un MAPA
         else if (selectedItem instanceof MapRegion) {
             MapRegion region = (MapRegion) selectedItem;
@@ -519,14 +520,17 @@ setStatus(String.format(
         }
     }
 
-    // ── Cerrar sesión ─────────────────────────────────────────
+   // ── Cerrar sesión ─────────────────────────────────────────
 
+    @FXML
     private void cerrarSesion(ActionEvent event) {
         app.logout();
         try {
-            Pane pane = new FXMLLoader(getClass().getResource("/login/FXMLLogin.fxml")).load();
+            Pane pane = FXMLLoader.load(getClass().getResource("/login/FXMLLogin.fxml"));
             usernameLabel.getScene().setRoot(pane);
-        } catch (Exception e) { e.printStackTrace(); }
+        } catch (Exception e) { 
+            e.printStackTrace(); 
+        }
     }
 
     // ── Cambiar mapa ──────────────────────────────────────────
@@ -647,6 +651,60 @@ setStatus(String.format(
         }
     }
 
+    private void mostrarGraficaDesnivel(Activity actividad) {
+    List<TrackPoint> puntos = actividad.getTrackPoints();
+    if (puntos == null || puntos.isEmpty()) return;
+
+    NumberAxis ejeX = new NumberAxis();
+    ejeX.setLabel("Distancia (km)");
+    NumberAxis ejeY = new NumberAxis();
+    ejeY.setLabel("Altitud (m)");
+
+    AreaChart<Number, Number> areaChart = new AreaChart<>(ejeX, ejeY);
+    areaChart.setTitle("Perfil de Desnivel: " + actividad.getName());
+    areaChart.setLegendVisible(false);
+
+    XYChart.Series<Number, Number> series = new XYChart.Series<>();
+    double distanciaAcumulada = 0.0;
+    
+    TrackPoint primerPunto = puntos.get(0);
+    series.getData().add(new XYChart.Data<>(0.0, primerPunto.getElevation()));
+
+    for (int i = 0; i < puntos.size() - 1; i++) {
+        TrackPoint pActual = puntos.get(i);
+        TrackPoint pSiguiente = puntos.get(i + 1);
+        distanciaAcumulada += pActual.distanceTo(pSiguiente);
+        
+        double km = distanciaAcumulada / 1000.0;
+        double altitud = pSiguiente.getElevation();
+        series.getData().add(new XYChart.Data<>(km, altitud));
+    }
+
+    areaChart.getData().add(series);
+
+    Stage stageGrafica = new Stage();
+    stageGrafica.setTitle("Análisis de Altitud - Running la Safor");
+    stageGrafica.initModality(Modality.NONE);
+    stageGrafica.initOwner(map_listview.getScene().getWindow());
+    
+    Scene escena = new Scene(areaChart, 600, 350);
+    stageGrafica.setScene(escena);
+    stageGrafica.show();
+}
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
     @FXML
     private void perfil(ActionEvent event) throws IOException {
         try {
