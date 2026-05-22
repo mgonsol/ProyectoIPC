@@ -25,12 +25,12 @@
          <children>
             <SplitPane fx:id="splitPane" dividerPositions="0.19699727024567792" prefHeight="556.0" prefWidth="722.0" VBox.vgrow="ALWAYS">
                <items>
-                  <ListView fx:id="map_listview" minWidth="-Infinity" onMouseClicked="#listClicked" prefHeight="554.0" prefWidth="247.0" />
+                  <ListView fx:id="map_listview" minWidth="-Infinity" onMouseClicked="#listClicked" prefHeight="554.0" prefWidth="182.0" SplitPane.resizableWithParent="false" />
                   <ScrollPane fx:id="map_scrollpane" hbarPolicy="ALWAYS" pannable="true" prefHeight="398.0" prefWidth="358.0" vbarPolicy="ALWAYS">
                      <content>
                         <Pane prefHeight="1050.0" prefWidth="1442.0">
                            <children>
-                              <ImageView fitWidth="1498.0" layoutX="-50.0" pickOnBounds="true">
+                              <ImageView fitWidth="1498.0" layoutX="-17.0" layoutY="1.0" pickOnBounds="true">
                                  <image>
                                     <Image url="@../resources/upv.jpg" />
                                  </image>

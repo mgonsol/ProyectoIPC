@@ -12,6 +12,7 @@ import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.fxml.Initializable;
+import javafx.scene.Node;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.DatePicker;
@@ -171,8 +172,8 @@ public class FXMLModificarPerfilController implements Initializable {
 
     @FXML
     private void cancel1(ActionEvent event) {
-        Stage ventanaActual = (Stage) newMail.getScene().getWindow();
-        ventanaActual.close();
+        Stage ventanaPerfil = (Stage) ((Node) event.getSource()).getScene().getWindow();
+        ventanaPerfil.close();
     }
 
     @FXML

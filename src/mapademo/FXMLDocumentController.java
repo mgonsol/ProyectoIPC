@@ -1,5 +1,6 @@
 package mapademo;
 
+import actividades.FXMLDetalleActividadesController;
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;
@@ -64,6 +65,8 @@ import javafx.scene.chart.XYChart;
 public class FXMLDocumentController implements Initializable {
 
     private final SportActivityApp app = SportActivityApp.getInstance();
+    
+    private javafx.scene.Node mapaOriginal = null;
 
     private Group         zoomGroup;
     private Pane          mapPane;
@@ -105,61 +108,57 @@ public class FXMLDocumentController implements Initializable {
     @FXML
     void listClicked(MouseEvent event) {
         // Obtenemos el elemento seleccionado sin asumir qué tipo de objeto es
-        Object selectedItem = map_listview.getSelectionModel().getSelectedItem();
-        if (selectedItem == null) return;
+    Object selectedItem = map_listview.getSelectionModel().getSelectedItem();
+    if (selectedItem == null) return;
 
-        // CASO 1: Han hecho clic en una ACTIVIDAD
-        if (selectedItem instanceof Activity) {
-            Activity selected = (Activity) selectedItem;
-            selectedActivity = selected;
+    // CASO 1: Han hecho clic en una ACTIVIDAD
+    if (selectedItem instanceof Activity) {
+        Activity selected = (Activity) selectedItem;
+        selectedActivity = selected;
 
-            MapRegion region = app.findMapForActivity(selected);
-            if (region == null) { setStatus("No se encontró mapa para esta actividad."); return; }
-
-            buildMap(new File(region.getImagePath()));
-            drawActivity(selected, region);
-            for (Annotation ann : selected.getAnnotations()) drawAnnotation(ann);
-
-            double distKm = selected.getTotalDistance() / 1000.0;
-            long totalSegundos = selected.getDuration().toSeconds();
-            long min = totalSegundos / 60;
-            long seg = totalSegundos % 60;
-
-            double velMedia = selected.getAverageSpeed();
-            double ritmoMedio = selected.getAveragePace(); 
-            double desPlus = selected.getElevationGain();
-            double desMinus = selected.getElevationLoss();
-            double altMin = selected.getMinElevation();
-            double altMax = selected.getMaxElevation();
-
-            setStatus(String.format(
-                "📍 %s | 📏 %.2f km | ⏱ %d:%02d min | 🚀 Vel. Media: %.1f km/h (Ritmo: %.2f min/km) | 📈 Desn+: %.0fm Desn-: %.0fm | 🏔 Alt: %.0fm - %.0fm",
-                selected.getName(), distKm, min, seg, velMedia, ritmoMedio, desPlus, desMinus, altMin, altMax
-            ));
-            
-            mostrarGraficaDesnivel(selected);
-        }
-        // CASO 2: Han hecho clic en un MAPA
-        else if (selectedItem instanceof MapRegion) {
-            MapRegion region = (MapRegion) selectedItem;
-            
-            // Limpiamos la actividad seleccionada para que no intente dibujar rutas raras
-            selectedActivity = null; 
-            
-            // Llamamos directamente a tu método buildMap con la ruta de la imagen
-            buildMap(new File(region.getImagePath()));
-            
-            setStatus("🗺️ Mostrando mapa limpio: " + region.getName());
-        } 
+        // ¡AQUÍ ESTÁ EL CAMBIO! 
+        // Ya no dibujamos el mapa aquí, sino que llamamos a la pantalla de detalle.
+        mostrarDetalleActividad(selected);
         
-        // CASO 3: Han hecho clic en una SESIÓN
-        else if (selectedItem instanceof Session) {
-            Session session = (Session) selectedItem;
-            
-            // En las sesiones no hay mapa que mostrar, así que solo actualizamos la barra inferior
-            long minutos = session.getDuration().toMinutes();
-            setStatus("💻 Sesión visualizada. Duración total: " + minutos + " minutos");
-        }
+        // (Opcional) Podemos actualizar la barra de estado inferior
+        double distKm = selected.getTotalDistance() / 1000.0;
+        setStatus(String.format("📍 %s   |   %.2f km", selected.getName(), distKm));
+    } 
+    
+    // CASO 2: Han hecho clic en un MAPA
+    else if (selectedItem instanceof MapRegion) {
+        MapRegion region = (MapRegion) selectedItem;
+        
+        // Limpiamos la actividad seleccionada
+        selectedActivity = null; 
+        
+        // Como aquí sí queremos ver el mapa completo, llamamos a mostrarMapas() 
+        // para asegurarnos de que la vista del mapa está cargada, y luego lo dibujamos.
+        mostrarMapas();
+        buildMap(new File(region.getImagePath()));
+        
+        setStatus("🗺️ Mostrando mapa limpio: " + region.getName());
+    } 
+    
+    // CASO 3: Han hecho clic en una SESIÓN
+    else if (selectedItem instanceof Session) {
+        Session session = (Session) selectedItem;
+        
+        long minutos = session.getDuration().toMinutes();
+        setStatus("💻 Sesión visualizada. Duración total: " + minutos + " minutos");
+    }else if (selectedItem instanceof MapRegion) {
+    MapRegion region = (MapRegion) selectedItem;
+    selectedActivity = null; 
+    mostrarMapas();
+    
+    // Construimos el mapa y lo metemos en el ScrollPane principal
+    Group mapaLimpio = buildMap(new File(region.getImagePath()));
+    if (mapaLimpio != null) {
+        map_scrollpane.setContent(mapaLimpio);
+    }
+    
+    setStatus("🗺️ Mostrando mapa limpio: " + region.getName());
+}
     }
 
     // ── Dibujar ruta ─────────────────────────────────────────
@@ -369,10 +368,10 @@ setStatus(String.format(
 
     // ── Construcción del mapa ─────────────────────────────────
 
-    private void buildMap(File imgFile) {
+    private Group buildMap(File imgFile) {
         if (!imgFile.exists()) {
-            map_scrollpane.setContent(new Label("Imagen no encontrada: " + imgFile.getPath()));
-            return;
+        System.out.println("Imagen no encontrada: " + imgFile.getPath());
+        return null;
         }
 
         Image img = new Image(imgFile.toURI().toString());
@@ -384,6 +383,7 @@ setStatus(String.format(
         mapPane.setPrefSize(mapWidth, mapHeight);
         mapPane.setMinSize(mapWidth, mapHeight);
         mapPane.setMaxSize(mapWidth, mapHeight);
+        
         mapPane.getChildren().add(new ImageView(img));
 
         mapPane.setOnMouseClicked(e -> {
@@ -424,7 +424,8 @@ setStatus(String.format(
         contentGroup.getChildren().add(zoomGroup);
         zoomGroup.setScaleX(zoom_slider.getValue());
         zoomGroup.setScaleY(zoom_slider.getValue());
-        map_scrollpane.setContent(contentGroup);
+    
+        return contentGroup;
     }
 
     // ── Inicialización ────────────────────────────────────────
@@ -482,8 +483,15 @@ setStatus(String.format(
             if (acts != null) map_listview.getItems().addAll(acts);
         }
 
-        buildMap(new File("maps/valencia.jpg"));
+        Group mapaInicial = buildMap(new File("maps/valencia.jpg"));
+        if (mapaInicial != null) {
+        map_scrollpane.setContent(mapaInicial); // Lo ponemos en la pantalla
+        mapaOriginal = mapaInicial;             // Lo guardamos para tu botón de "Mapas"
+}
+        
+        
     }
+    
 
     // ── Importar GPX ─────────────────────────────────────────
 
@@ -590,31 +598,47 @@ setStatus(String.format(
     }
 
     @FXML
-    private void mostrarMapas(ActionEvent event) {
-        // Recuperamos todas las regiones de mapas registradas [cite: 276]
-        List<MapRegion> mapas = app.getMapRegions(); 
-        
-        // Limpiamos la lista y añadimos los mapas
-        map_listview.getItems().clear();
-        map_listview.getItems().addAll(mapas);
+    private void mostrarMapas() {
+        // 1. Descongelamos el ScrollPane por completo
+    map_scrollpane.setFitToWidth(false);
+    map_scrollpane.setFitToHeight(false);
+    map_scrollpane.setVbarPolicy(javafx.scene.control.ScrollPane.ScrollBarPolicy.AS_NEEDED);
+    map_scrollpane.setHbarPolicy(javafx.scene.control.ScrollPane.ScrollBarPolicy.AS_NEEDED);
+    map_scrollpane.setPannable(true); 
+
+    // 2. Restauramos el mapa original que habíamos guardado en memoria
+    if (mapaOriginal != null) {
+        map_scrollpane.setContent(mapaOriginal);
+        setStatus("Mostrando la sección de Mapas.");
+    } else {
+        System.out.println("Error: No se encontró el mapa original guardado.");
+    }
     }
 
     @FXML
     private void mostrarActividades() {
-        // 1. Mantener tu lógica actual de la lista
         List<Activity> actividades = app.getUserActivities();
-        map_listview.getItems().clear();
-        map_listview.getItems().addAll(actividades);
+    map_listview.getItems().clear();
+    map_listview.getItems().addAll(actividades);
 
-        // 2. CAMBIO DE VISTA: Cargar el menú de actividades en el centro
-        try {
-            Pane nuevaVista = FXMLLoader.load(getClass().getResource("/actividades/FXMLActividades.fxml"));
-            map_scrollpane.setContent(nuevaVista);
-            
-            setStatus("Mostrando panel de control de Actividades.");
-        } catch (Exception e) {
-            System.out.println("Error al cargar VistaMenuActividades.fxml: " + e.getMessage());
-        }
+    // 2. CAMBIO DE VISTA: Cargar el menú de actividades en el centro
+    try {
+        Pane nuevaVista = FXMLLoader.load(getClass().getResource("/actividades/FXMLActividades.fxml"));
+        
+        // Metemos la vista en el ScrollPane...
+        map_scrollpane.setContent(nuevaVista);
+        
+        // ...¡Y CONGELAMOS EL SCROLLPANE PARA QUE ACTÚE COMO UN PANEL FIJO!
+        map_scrollpane.setFitToWidth(true);   // Obliga a que la vista ocupe todo el ancho fijo
+        map_scrollpane.setFitToHeight(true);  // Obliga a que la vista ocupe todo el alto fijo
+        map_scrollpane.setVbarPolicy(javafx.scene.control.ScrollPane.ScrollBarPolicy.NEVER); // Quita barra vertical
+        map_scrollpane.setHbarPolicy(javafx.scene.control.ScrollPane.ScrollBarPolicy.NEVER); // Quita barra horizontal
+        map_scrollpane.setPannable(false);    // Bloquea el movimiento si el usuario intenta arrastrar
+        
+        setStatus("Mostrando panel de control de Actividades.");
+    } catch (Exception e) {
+        System.out.println("Error al cargar VistaMenuActividades.fxml: " + e.getMessage());
+    }
     }
 
     @FXML
@@ -739,4 +763,39 @@ setStatus(String.format(
             e.printStackTrace();
         }
     }
+     
+    private void mostrarDetalleActividad(Activity actividad) {
+    try {
+        FXMLLoader loader = new FXMLLoader(getClass().getResource("/actividades/FXMLDetalleActividades.fxml"));
+        Pane vistaDetalle = loader.load();
+        FXMLDetalleActividadesController controladorDetalle = loader.getController();
+        
+        // 1. Comprobamos la región
+        MapRegion region = app.findMapForActivity(actividad);
+        System.out.println("DEBUG: ¿Se ha encontrado región para la actividad? -> " + (region != null ? region.getName() : "NO (null)"));
+
+        if (region != null) {
+            // 2. Comprobamos si la imagen del mapa existe y se construye
+            Group mapaConRuta = buildMap(new File(region.getImagePath()));
+            System.out.println("DEBUG: ¿Se ha construido el Group del mapa? -> " + (mapaConRuta != null ? "SÍ" : "NO (null)"));
+            
+            drawActivity(actividad, region);
+            for (Annotation ann : actividad.getAnnotations()) {
+                drawAnnotation(ann);
+            }
+            controladorDetalle.setActividad(actividad, mapaConRuta);
+        } else {
+            controladorDetalle.setActividad(actividad, null);
+        }
+        
+        map_scrollpane.setFitToWidth(true);
+        map_scrollpane.setFitToHeight(true);
+        map_scrollpane.setContent(vistaDetalle);
+        
+    } catch (Exception e) {
+        System.out.println("DEBUG: ERROR GRAVE en mostrarDetalleActividad:");
+        e.printStackTrace();
+    }
 }
+}
+
