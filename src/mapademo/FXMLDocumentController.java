@@ -52,8 +52,6 @@ import upv.ipc.sportlib.Session;
 import upv.ipc.sportlib.SportActivityApp;
 import upv.ipc.sportlib.TrackPoint;
 import upv.ipc.sportlib.User;
-import javafx.stage.FileChooser;
-import java.io.File;
 import javafx.scene.Scene;
 import javafx.stage.Modality;
 import javafx.stage.Window;
@@ -107,58 +105,48 @@ public class FXMLDocumentController implements Initializable {
 
     @FXML
     void listClicked(MouseEvent event) {
-        // Obtenemos el elemento seleccionado sin asumir qué tipo de objeto es
-    Object selectedItem = map_listview.getSelectionModel().getSelectedItem();
-    if (selectedItem == null) return;
+        Object selectedItem = map_listview.getSelectionModel().getSelectedItem();
+        if (selectedItem == null) return;
 
-    // CASO 1: Han hecho clic en una ACTIVIDAD
-    if (selectedItem instanceof Activity) {
-        Activity selected = (Activity) selectedItem;
-        selectedActivity = selected;
+        if (selectedItem instanceof Activity) {
+            Activity selected = (Activity) selectedItem;
 
-        // ¡AQUÍ ESTÁ EL CAMBIO! 
-        // Ya no dibujamos el mapa aquí, sino que llamamos a la pantalla de detalle.
-        mostrarDetalleActividad(selected);
-        
-        // (Opcional) Podemos actualizar la barra de estado inferior
-        double distKm = selected.getTotalDistance() / 1000.0;
-        setStatus(String.format("📍 %s   |   %.2f km", selected.getName(), distKm));
-    } 
-    
-    // CASO 2: Han hecho clic en un MAPA
-    else if (selectedItem instanceof MapRegion) {
-        MapRegion region = (MapRegion) selectedItem;
-        
-        // Limpiamos la actividad seleccionada
-        selectedActivity = null; 
-        
-        // Como aquí sí queremos ver el mapa completo, llamamos a mostrarMapas() 
-        // para asegurarnos de que la vista del mapa está cargada, y luego lo dibujamos.
-        mostrarMapas();
-        buildMap(new File(region.getImagePath()));
-        
-        setStatus("🗺️ Mostrando mapa limpio: " + region.getName());
-    } 
-    
-    // CASO 3: Han hecho clic en una SESIÓN
-    else if (selectedItem instanceof Session) {
-        Session session = (Session) selectedItem;
-        
-        long minutos = session.getDuration().toMinutes();
-        setStatus("💻 Sesión visualizada. Duración total: " + minutos + " minutos");
-    }else if (selectedItem instanceof MapRegion) {
-    MapRegion region = (MapRegion) selectedItem;
-    selectedActivity = null; 
-    mostrarMapas();
-    
-    // Construimos el mapa y lo metemos en el ScrollPane principal
-    Group mapaLimpio = buildMap(new File(region.getImagePath()));
-    if (mapaLimpio != null) {
-        map_scrollpane.setContent(mapaLimpio);
-    }
-    
-    setStatus("🗺️ Mostrando mapa limpio: " + region.getName());
-}
+            if (event.getClickCount() == 2) {
+                Dialog<String> dlg = new Dialog<>();
+                dlg.setTitle("Renombrar actividad");
+                dlg.setHeaderText("Nuevo nombre para \"" + selected.getName() + "\"");
+                ButtonType okBtn = new ButtonType("Guardar", ButtonBar.ButtonData.OK_DONE);
+                dlg.getDialogPane().getButtonTypes().addAll(okBtn, ButtonType.CANCEL);
+                TextField tf = new TextField(selected.getName());
+                VBox box = new VBox(6, new Label("Nombre:"), tf);
+                box.setPadding(new Insets(10));
+                dlg.getDialogPane().setContent(box);
+                dlg.setResultConverter(b -> b == okBtn ? tf.getText().trim() : null);
+                dlg.showAndWait().ifPresent(nombre -> {
+                    if (!nombre.isEmpty()) {
+                        app.renameActivity(selected, nombre);
+                        map_listview.refresh();
+                        setStatus("✓ Actividad renombrada a \"" + nombre + "\".");
+                    }
+                });
+                return;
+            }
+
+            selectedActivity = selected;
+            mostrarDetalleActividad(selected);
+            double distKm = selected.getTotalDistance() / 1000.0;
+            setStatus(String.format("📍 %s   |   %.2f km", selected.getName(), distKm));
+        } else if (selectedItem instanceof MapRegion) {
+            MapRegion region = (MapRegion) selectedItem;
+            selectedActivity = null;
+            Group mapaGroup = buildMap(new File(region.getImagePath()));
+            if (mapaGroup != null) map_scrollpane.setContent(mapaGroup);
+            setStatus("🗺️ Mapa: " + region.getName());
+        } else if (selectedItem instanceof Session) {
+            Session session = (Session) selectedItem;
+            long minutos = session.getDuration().toMinutes();
+            setStatus("💻 Sesión: " + session.getStartTime().toLocalDate() + " | " + minutos + " min");
+        }
     }
 
     // ── Dibujar ruta ─────────────────────────────────────────
@@ -436,26 +424,21 @@ setStatus(String.format(
             @Override
             protected void updateItem(Object a, boolean empty) {
                 super.updateItem(a, empty);
-
-                // 1. Si la celda está vacía o el objeto es nulo, la dejamos en blanco
                 if (empty || a == null) {
                     setText(null);
-                } 
-                // 2. Si el objeto que entra es una Actividad...
-                else if (a instanceof Activity) {
-                    Activity act = (Activity) a; // Hacemos el cast
-                    setText(act.getName()); // Aquí sí funciona el getName()
-                } 
-                // 3. Si el objeto que entra es una Sesión...
-                else if (a instanceof Session) {
+                } else if (a instanceof Activity) {
+                    Activity act = (Activity) a;
+                    String fecha = (act.getStartTime() != null)
+                            ? act.getStartTime().toLocalDate().toString() : "";
+                    setText(String.format("%s\n%.2f km  ·  %s",
+                            act.getName(), act.getTotalDistance() / 1000.0, fecha));
+                } else if (a instanceof Session) {
                     Session ses = (Session) a;
-                    // Como no tiene getName(), usamos su fecha de inicio para identificarla
-                    setText("Sesión del " + ses.getStartTime());
-                } 
-                // 4. Si el objeto que entra es un Mapa...
-                else if (a instanceof MapRegion) {
+                    setText(String.format("📅 %s  ·  %d min",
+                            ses.getStartTime().toLocalDate(), ses.getDuration().toMinutes()));
+                } else if (a instanceof MapRegion) {
                     MapRegion map = (MapRegion) a;
-                    setText(map.getName()); // Aquí también funciona el getName()
+                    setText("🗺️ " + map.getName());
                 }
             }
         });
@@ -464,6 +447,49 @@ setStatus(String.format(
         zoom_slider.setMax(2.5);
         zoom_slider.setValue(1.0);
         zoom_slider.valueProperty().addListener((obs, o, n) -> zoom((Double) n));
+
+        ContextMenu listContextMenu = new ContextMenu();
+        MenuItem miEliminar = new MenuItem("🗑 Eliminar actividad");
+        listContextMenu.getItems().add(miEliminar);
+
+        miEliminar.setOnAction(e -> {
+            Object sel = map_listview.getSelectionModel().getSelectedItem();
+            if (!(sel instanceof Activity)) return;
+            Activity activity = (Activity) sel;
+
+            Alert confirm = new Alert(Alert.AlertType.CONFIRMATION);
+            confirm.setTitle("Eliminar actividad");
+            confirm.setHeaderText("¿Eliminar \"" + activity.getName() + "\"?");
+            confirm.setContentText("Esta acción no se puede deshacer.");
+            confirm.showAndWait().ifPresent(btn -> {
+                if (btn == ButtonType.OK) {
+                    boolean ok = app.removeActivity(activity);
+                    if (ok) {
+                        map_listview.getItems().remove(activity);
+                        if (activity.equals(selectedActivity)) {
+                            selectedActivity = null;
+                            List<MapRegion> regions = app.getMapRegions();
+                            if (regions != null && !regions.isEmpty()) {
+                                Group g = buildMap(new File(regions.get(0).getImagePath()));
+                                if (g != null) map_scrollpane.setContent(g);
+                            }
+                        }
+                        setStatus("✓ Actividad eliminada.");
+                    } else {
+                        setStatus("✗ No se pudo eliminar la actividad.");
+                    }
+                }
+            });
+        });
+
+        map_listview.setOnContextMenuRequested(e -> {
+            Object sel = map_listview.getSelectionModel().getSelectedItem();
+            if (sel instanceof Activity) {
+                listContextMenu.show(map_listview, e.getScreenX(), e.getScreenY());
+            } else {
+                listContextMenu.hide();
+            }
+        });
 
         MenuItem miPoint  = new MenuItem("📍 Añadir punto");
         MenuItem miText   = new MenuItem("📝 Añadir texto");
@@ -483,11 +509,14 @@ setStatus(String.format(
             if (acts != null) map_listview.getItems().addAll(acts);
         }
 
-        Group mapaInicial = buildMap(new File("maps/valencia.jpg"));
-        if (mapaInicial != null) {
-        map_scrollpane.setContent(mapaInicial); // Lo ponemos en la pantalla
-        mapaOriginal = mapaInicial;             // Lo guardamos para tu botón de "Mapas"
-}
+        List<MapRegion> regions = app.getMapRegions();
+        if (regions != null && !regions.isEmpty()) {
+            Group mapaInicial = buildMap(new File(regions.get(0).getImagePath()));
+            if (mapaInicial != null) {
+                map_scrollpane.setContent(mapaInicial);
+                mapaOriginal = mapaInicial;
+            }
+        }
         
         
 
@@ -514,8 +543,9 @@ setStatus(String.format(
 
             MapRegion region = app.findMapForActivity(activity);
             if (region != null) {
-                buildMap(new File(region.getImagePath()));
+                Group mapaGroup = buildMap(new File(region.getImagePath()));
                 drawActivity(activity, region);
+                if (mapaGroup != null) map_scrollpane.setContent(mapaGroup);
                 setStatus(String.format("✓ GPX importado: %s   |   %.2f km",
                         activity.getName(), activity.getTotalDistance() / 1000.0));
             } else {
@@ -542,6 +572,67 @@ setStatus(String.format(
         }
     }
 
+    // ── Añadir mapa ───────────────────────────────────────────
+
+    @FXML
+    private void añadirMapa(ActionEvent event) {
+        FileChooser fc = new FileChooser();
+        fc.setTitle("Seleccionar imagen del mapa");
+        fc.getExtensionFilters().add(new FileChooser.ExtensionFilter("Imágenes", "*.jpg", "*.jpeg", "*.png"));
+        File imgFile = fc.showOpenDialog(map_listview.getScene().getWindow());
+        if (imgFile == null) return;
+
+        Dialog<MapRegion> dialog = new Dialog<>();
+        dialog.setTitle("Añadir mapa");
+        dialog.setHeaderText("Introduce los datos del mapa");
+
+        ButtonType okBtn = new ButtonType("Añadir", ButtonBar.ButtonData.OK_DONE);
+        dialog.getDialogPane().getButtonTypes().addAll(okBtn, ButtonType.CANCEL);
+
+        TextField tfNombre = new TextField(); tfNombre.setPromptText("Nombre del mapa");
+        TextField tfLatMin = new TextField(); tfLatMin.setPromptText("Latitud mínima");
+        TextField tfLatMax = new TextField(); tfLatMax.setPromptText("Latitud máxima");
+        TextField tfLonMin = new TextField(); tfLonMin.setPromptText("Longitud mínima");
+        TextField tfLonMax = new TextField(); tfLonMax.setPromptText("Longitud máxima");
+
+        VBox content = new VBox(6,
+            new Label("Nombre:"), tfNombre,
+            new Label("Lat. mínima:"), tfLatMin,
+            new Label("Lat. máxima:"), tfLatMax,
+            new Label("Lon. mínima:"), tfLonMin,
+            new Label("Lon. máxima:"), tfLonMax
+        );
+        content.setPadding(new Insets(10));
+        dialog.getDialogPane().setContent(content);
+
+        final File finalImg = imgFile;
+        dialog.setResultConverter(btn -> {
+            if (btn != okBtn) return null;
+            try {
+                double latMin = Double.parseDouble(tfLatMin.getText().trim());
+                double latMax = Double.parseDouble(tfLatMax.getText().trim());
+                double lonMin = Double.parseDouble(tfLonMin.getText().trim());
+                double lonMax = Double.parseDouble(tfLonMax.getText().trim());
+                return app.addMapRegion(tfNombre.getText().trim(), finalImg, latMin, latMax, lonMin, lonMax);
+            } catch (NumberFormatException e) {
+                return null;
+            }
+        });
+
+        dialog.showAndWait().ifPresent(region -> {
+            if (region != null) {
+                setStatus("✓ Mapa añadido: " + region.getName());
+                mostrarMapas();
+            } else {
+                Alert err = new Alert(Alert.AlertType.ERROR);
+                err.setTitle("Error");
+                err.setHeaderText("No se pudo añadir el mapa");
+                err.setContentText("Comprueba que las coordenadas son válidas y el nombre no está vacío.");
+                err.showAndWait();
+            }
+        });
+    }
+
     // ── Cambiar mapa ──────────────────────────────────────────
 
     @FXML
@@ -551,7 +642,8 @@ setStatus(String.format(
         File imgFile = fc.showOpenDialog(zoom_slider.getScene().getWindow());
         if (imgFile != null) {
             selectedActivity = null;
-            buildMap(imgFile);
+            Group mapaGroup = buildMap(imgFile);
+            if (mapaGroup != null) map_scrollpane.setContent(mapaGroup);
             setStatus("Mapa cambiado: " + imgFile.getName());
         }
     }
@@ -575,104 +667,73 @@ setStatus(String.format(
 
     @FXML
     private void mostrarSesiones(ActionEvent event) {
-        // 1. Mantener tu lógica actual de rellenar la lista de la izquierda
-        User usuarioActual = app.getCurrentUser(); 
+        User usuarioActual = app.getCurrentUser();
         if (usuarioActual != null) {
             List<Session> sesiones = app.getSessionsByUser(usuarioActual);
             map_listview.getItems().clear();
-            map_listview.getItems().addAll(sesiones);
+            if (sesiones != null) map_listview.getItems().addAll(sesiones);
         }
-
-        // 2. CAMBIO DE VISTA: Cargar el menú de sesiones en el centro
         try {
-            // Cargamos el archivo FXML de la nueva vista
             Pane nuevaVista = FXMLLoader.load(getClass().getResource("/sesiones/FXMLSesiones.fxml"));
-            
-            // Reemplazamos el mapa del centro por este nuevo panel
             map_scrollpane.setContent(nuevaVista);
-            
-            setStatus("Mostrando panel de control de Sesiones.");
-        } catch (Exception e) {
-            System.out.println("Error al cargar VistaMenuSesiones.fxml: " + e.getMessage());
-            e.printStackTrace();
-        }
+            map_scrollpane.setFitToWidth(true);
+            map_scrollpane.setFitToHeight(true);
+            map_scrollpane.setVbarPolicy(javafx.scene.control.ScrollPane.ScrollBarPolicy.NEVER);
+            map_scrollpane.setHbarPolicy(javafx.scene.control.ScrollPane.ScrollBarPolicy.NEVER);
+            map_scrollpane.setPannable(false);
+            setStatus("Historial de sesiones.");
+        } catch (Exception e) { e.printStackTrace(); }
     }
 
     @FXML
     private void mostrarMapas() {
-        // 1. Descongelamos el ScrollPane por completo
-    map_scrollpane.setFitToWidth(false);
-    map_scrollpane.setFitToHeight(false);
-    map_scrollpane.setVbarPolicy(javafx.scene.control.ScrollPane.ScrollBarPolicy.AS_NEEDED);
-    map_scrollpane.setHbarPolicy(javafx.scene.control.ScrollPane.ScrollBarPolicy.AS_NEEDED);
-    map_scrollpane.setPannable(true); 
+        map_scrollpane.setFitToWidth(false);
+        map_scrollpane.setFitToHeight(false);
+        map_scrollpane.setVbarPolicy(javafx.scene.control.ScrollPane.ScrollBarPolicy.AS_NEEDED);
+        map_scrollpane.setHbarPolicy(javafx.scene.control.ScrollPane.ScrollBarPolicy.AS_NEEDED);
+        map_scrollpane.setPannable(true);
 
-    // 2. Restauramos el mapa original que habíamos guardado en memoria
-    if (mapaOriginal != null) {
-        map_scrollpane.setContent(mapaOriginal);
-        setStatus("Mostrando la sección de Mapas.");
-    } else {
-        System.out.println("Error: No se encontró el mapa original guardado.");
-    }
+        List<MapRegion> regions = app.getMapRegions();
+        map_listview.getItems().clear();
+        if (regions != null) map_listview.getItems().addAll(regions);
+
+        if (mapaOriginal != null) map_scrollpane.setContent(mapaOriginal);
+        setStatus("Selecciona un mapa de la lista para visualizarlo.");
     }
 
     @FXML
     private void mostrarActividades() {
         List<Activity> actividades = app.getUserActivities();
-    map_listview.getItems().clear();
-    map_listview.getItems().addAll(actividades);
-
-    // 2. CAMBIO DE VISTA: Cargar el menú de actividades en el centro
-    try {
-        Pane nuevaVista = FXMLLoader.load(getClass().getResource("/actividades/FXMLActividades.fxml"));
-        
-        // Metemos la vista en el ScrollPane...
-        map_scrollpane.setContent(nuevaVista);
-        
-        // ...¡Y CONGELAMOS EL SCROLLPANE PARA QUE ACTÚE COMO UN PANEL FIJO!
-        map_scrollpane.setFitToWidth(true);   // Obliga a que la vista ocupe todo el ancho fijo
-        map_scrollpane.setFitToHeight(true);  // Obliga a que la vista ocupe todo el alto fijo
-        map_scrollpane.setVbarPolicy(javafx.scene.control.ScrollPane.ScrollBarPolicy.NEVER); // Quita barra vertical
-        map_scrollpane.setHbarPolicy(javafx.scene.control.ScrollPane.ScrollBarPolicy.NEVER); // Quita barra horizontal
-        map_scrollpane.setPannable(false);    // Bloquea el movimiento si el usuario intenta arrastrar
-        
-        setStatus("Mostrando panel de control de Actividades.");
-    } catch (Exception e) {
-        System.out.println("Error al cargar VistaMenuActividades.fxml: " + e.getMessage());
-    }
+        map_listview.getItems().clear();
+        if (actividades != null) map_listview.getItems().addAll(actividades);
+        try {
+            Pane nuevaVista = FXMLLoader.load(getClass().getResource("/actividades/FXMLActividades.fxml"));
+            map_scrollpane.setContent(nuevaVista);
+            map_scrollpane.setFitToWidth(true);
+            map_scrollpane.setFitToHeight(true);
+            map_scrollpane.setVbarPolicy(javafx.scene.control.ScrollPane.ScrollBarPolicy.NEVER);
+            map_scrollpane.setHbarPolicy(javafx.scene.control.ScrollPane.ScrollBarPolicy.NEVER);
+            map_scrollpane.setPannable(false);
+            setStatus("Estadísticas acumuladas.");
+        } catch (Exception e) { e.printStackTrace(); }
     }
 
     @FXML
     private void añadirActividad(ActionEvent event) {
-        // Creamos el explorador de archivos
-        FileChooser fileChooser = new FileChooser();
-        fileChooser.setTitle("Seleccionar ruta deportiva (GPX)");
-        
-        // Ponemos un filtro para que el usuario solo pueda elegir archivos .gpx
-        fileChooser.getExtensionFilters().add(
-            new FileChooser.ExtensionFilter("Archivos GPS (*.gpx)", "*.gpx")
-        );
-
-        // Obtenemos la ventana actual de la aplicación (necesario para mostrar el diálogo)
-        Window ventanaActual = map_listview.getScene().getWindow();
-        
-        // Abrimos la ventana y esperamos a que el usuario seleccione un archivo
-        File archivoSeleccionado = fileChooser.showOpenDialog(ventanaActual);
-
-        // Si el usuario seleccionó un archivo (es decir, no le dio a "Cancelar")
-        if (archivoSeleccionado != null) {
-            
-            // Usamos la librería para importar el archivo GPX a la base de datos
-            Activity nuevaActividad = app.importActivity(archivoSeleccionado);
-            
-            if (nuevaActividad != null) {
-                System.out.println("¡Éxito! Actividad importada: " + nuevaActividad.getName());
-                
-                // Refrescamos automáticamente la lista para que el usuario vea su nueva actividad
-                mostrarActividades(); 
-            } else {
-                System.out.println("Hubo un error al intentar procesar el archivo GPX.");
-            }
+        FileChooser fc = new FileChooser();
+        fc.setTitle("Seleccionar archivo GPX");
+        fc.getExtensionFilters().add(new FileChooser.ExtensionFilter("Archivos GPX", "*.gpx"));
+        File archivo = fc.showOpenDialog(map_listview.getScene().getWindow());
+        if (archivo == null) return;
+        Activity nueva = app.importActivity(archivo);
+        if (nueva != null) {
+            mostrarActividades();
+            setStatus("✓ Actividad importada: " + nueva.getName());
+        } else {
+            Alert alert = new Alert(Alert.AlertType.ERROR);
+            alert.setTitle("Error al importar");
+            alert.setHeaderText("No se pudo importar el archivo GPX");
+            alert.showAndWait();
         }
     }
 
@@ -731,73 +792,42 @@ setStatus(String.format(
     
     
     @FXML
-    private void perfil(ActionEvent event) throws IOException {
+    private void perfil(ActionEvent event) {
         try {
-        // 1. Cargamos el archivo FXML de la nueva interfaz de perfil
-        FXMLLoader loader = new FXMLLoader(getClass().getResource("/modificarPerfil/FXMLModificarPerfil.fxml"));
-        Pane root = loader.load();
-        
-        // 2. Creamos un nuevo escenario (Stage) para la ventana secundaria
-        Stage ventanaPerfil = new Stage();
-        ventanaPerfil.setTitle("Modificar Perfil de Usuario");
-        
-        // 3. Hacemos que sea modal (bloquea la ventana principal mientras esté abierta)
-        ventanaPerfil.initModality(Modality.WINDOW_MODAL);
-        ventanaPerfil.initOwner(map_listview.getScene().getWindow());
-        
-        // 4. Asignamos la escena y mostramos la ventana
-        Scene scene = new Scene(root);
-        ventanaPerfil.setScene(scene);
-        
-        // Usamos showAndWait() para que el programa "espere" a que se cierre
-        ventanaPerfil.showAndWait();
-        
-        // Opcional: Cuando se cierre la ventana, podemos refrescar el nombre de usuario
-        // por si acaso lo cambiase (aunque el nick es fijo, el avatar o datos sí cambian)
-        User user = app.getCurrentUser();
-        if (user != null) {
-            usernameLabel.setText("👤 " + user.getNickName());
-        }
-        
-        } catch (Exception e) {
-            System.out.println("Error al abrir la ventana de modificar perfil: " + e.getMessage());
-            e.printStackTrace();
-        }
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/modificarPerfil/FXMLModificarPerfil.fxml"));
+            Pane root = loader.load();
+            Stage ventanaPerfil = new Stage();
+            ventanaPerfil.setTitle("Modificar Perfil");
+            ventanaPerfil.initModality(Modality.WINDOW_MODAL);
+            ventanaPerfil.initOwner(map_listview.getScene().getWindow());
+            ventanaPerfil.setScene(new Scene(root));
+            ventanaPerfil.showAndWait();
+            User user = app.getCurrentUser();
+            if (user != null) usernameLabel.setText("👤 " + user.getNickName());
+        } catch (Exception e) { e.printStackTrace(); }
     }
      
     private void mostrarDetalleActividad(Activity actividad) {
-    try {
-        FXMLLoader loader = new FXMLLoader(getClass().getResource("/actividades/FXMLDetalleActividades.fxml"));
-        Pane vistaDetalle = loader.load();
-        FXMLDetalleActividadesController controladorDetalle = loader.getController();
-        
-        MapRegion region = app.findMapForActivity(actividad);
-
-        if (region != null) {
-            Group mapaConRuta = buildMap(new File(region.getImagePath()));
-            
-            drawActivity(actividad, region);
-            for (Annotation ann : actividad.getAnnotations()) {
-                drawAnnotation(ann);
+        try {
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/actividades/FXMLDetalleActividades.fxml"));
+            Pane vistaDetalle = loader.load();
+            FXMLDetalleActividadesController controladorDetalle = loader.getController();
+            MapRegion region = app.findMapForActivity(actividad);
+            if (region != null) {
+                Group mapaConRuta = buildMap(new File(region.getImagePath()));
+                drawActivity(actividad, region);
+                for (Annotation ann : actividad.getAnnotations()) drawAnnotation(ann);
+                controladorDetalle.setActividad(actividad, mapaConRuta);
+            } else {
+                controladorDetalle.setActividad(actividad, null);
             }
-            controladorDetalle.setActividad(actividad, mapaConRuta);
-        } else {
-            controladorDetalle.setActividad(actividad, null);
-        }
-        
-        // Volvemos a congelar el scrollpane para que el diseño NO se rompa
-        map_scrollpane.setFitToWidth(true);
-        map_scrollpane.setFitToHeight(true);
-        map_scrollpane.setVbarPolicy(javafx.scene.control.ScrollPane.ScrollBarPolicy.NEVER);
-        map_scrollpane.setHbarPolicy(javafx.scene.control.ScrollPane.ScrollBarPolicy.NEVER);
-        map_scrollpane.setPannable(false);
-        
-        map_scrollpane.setContent(vistaDetalle);
-        
-    } catch (Exception e) {
-        System.out.println("Error en mostrarDetalleActividad:");
-        e.printStackTrace();
+            map_scrollpane.setFitToWidth(true);
+            map_scrollpane.setFitToHeight(true);
+            map_scrollpane.setVbarPolicy(javafx.scene.control.ScrollPane.ScrollBarPolicy.NEVER);
+            map_scrollpane.setHbarPolicy(javafx.scene.control.ScrollPane.ScrollBarPolicy.NEVER);
+            map_scrollpane.setPannable(false);
+            map_scrollpane.setContent(vistaDetalle);
+        } catch (Exception e) { e.printStackTrace(); }
     }
-}
 }
 

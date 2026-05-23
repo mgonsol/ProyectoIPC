@@ -3,11 +3,13 @@ package register;
 import java.io.File;
 import java.net.URL;
 import java.util.ResourceBundle;
+import javafx.application.Platform;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.fxml.Initializable;
 import javafx.scene.control.Alert;
+import javafx.stage.Stage;
 import javafx.scene.control.DatePicker;
 import javafx.scene.control.Label;
 import javafx.scene.control.PasswordField;
@@ -42,7 +44,12 @@ public class FXMLRegisterController implements Initializable {
 
     @Override
     public void initialize(URL url, ResourceBundle rb) {
-    }    
+        Platform.runLater(() -> {
+            Stage stage = (Stage) nicknameField.getScene().getWindow();
+            stage.setMinWidth(660);
+            stage.setMinHeight(540);
+        });
+    }
 
     @FXML
     private void register(ActionEvent event) {

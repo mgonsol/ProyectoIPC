@@ -1,13 +1,10 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/javafx/FXMLController.java to edit this template
- */
 package modificarPerfil;
 
 import java.io.File;
 import java.net.URL;
 import java.time.LocalDate;
 import java.util.ResourceBundle;
+import javafx.application.Platform;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
@@ -27,11 +24,6 @@ import javafx.stage.Stage;
 import upv.ipc.sportlib.SportActivityApp;
 import upv.ipc.sportlib.User;
 
-/**
- * FXML Controller class
- *
- * @author editor
- */
 public class FXMLModificarPerfilController implements Initializable {
     
     private final SportActivityApp app = SportActivityApp.getInstance();
@@ -52,11 +44,13 @@ public class FXMLModificarPerfilController implements Initializable {
     
     private String rutaAvatarActual;
 
-    /**
-     * Initializes the controller class.
-     */
     @Override
     public void initialize(URL url, ResourceBundle rb) {
+        Platform.runLater(() -> {
+            Stage ventana = (Stage) newMail.getScene().getWindow();
+            ventana.setMinWidth(640);
+            ventana.setMinHeight(520);
+        });
         User usuarioActual = app.getCurrentUser();
         if (usuarioActual != null) {
             newNickname.setText(usuarioActual.getNickName());
@@ -64,7 +58,7 @@ public class FXMLModificarPerfilController implements Initializable {
             newMail.setText(usuarioActual.getEmail());
             
            
-            newDate.setValue(LocalDate.now().minusYears(18)); 
+            newDate.setValue(usuarioActual.getBirthDate());
             
             if (usuarioActual.getAvatarPath() != null && !usuarioActual.getAvatarPath().isEmpty()) {
                 try {
@@ -85,6 +79,10 @@ public class FXMLModificarPerfilController implements Initializable {
         app.logout();
         try {
             Pane pane = new FXMLLoader(getClass().getResource("/login/FXMLLogin.fxml")).load();
+            Stage ventanaPerfil = (Stage) newMail.getScene().getWindow();
+            Stage ventanaPrincipal = (Stage) ventanaPerfil.getOwner();
+            ventanaPrincipal.getScene().setRoot(pane);
+            ventanaPerfil.close();
         } catch (Exception e) { e.printStackTrace(); }
     }
 

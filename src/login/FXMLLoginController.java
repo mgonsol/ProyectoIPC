@@ -2,6 +2,7 @@ package login;
 
 import java.net.URL;
 import java.util.ResourceBundle;
+import javafx.application.Platform;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
@@ -28,7 +29,13 @@ public class FXMLLoginController implements Initializable {
     private Label passwordError;
 
     @Override
-    public void initialize(URL url, ResourceBundle rb) {}
+    public void initialize(URL url, ResourceBundle rb) {
+        Platform.runLater(() -> {
+            Stage stage = (Stage) nicknameField1.getScene().getWindow();
+            stage.setMinWidth(640);
+            stage.setMinHeight(460);
+        });
+    }
 
     @FXML
     private void autenticarse(ActionEvent event) {

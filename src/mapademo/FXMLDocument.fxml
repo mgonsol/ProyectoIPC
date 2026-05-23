@@ -70,6 +70,7 @@
             <Separator orientation="VERTICAL" />
             <Label fx:id="usernameLabel" text="Usuario" />
             <Button mnemonicParsing="false" onAction="#perfil" text="Perfil" />
+            <Button mnemonicParsing="false" onAction="#cerrarSesion" text="Cerrar sesión" />
          </children>
          <BorderPane.margin>
             <Insets bottom="6.0" left="6.0" right="6.0" top="6.0" />
@@ -90,9 +91,10 @@
       <VBox alignment="CENTER" prefHeight="556.0" prefWidth="190.0" spacing="100.0" BorderPane.alignment="CENTER">
          <children>
             <Button alignment="CENTER" maxWidth="-Infinity" mnemonicParsing="false" onAction="#mostrarActividades" prefHeight="50.0" prefWidth="150.0" text="Actividades" />
+            <Button maxWidth="-Infinity" mnemonicParsing="false" onAction="#añadirActividad" prefHeight="50.0" prefWidth="150.0" text="Añadir actividad" />
             <Button maxWidth="-Infinity" mnemonicParsing="false" onAction="#mostrarSesiones" prefHeight="50.0" prefWidth="150.0" text="Sesiones" />
             <Button maxWidth="-Infinity" mnemonicParsing="false" onAction="#mostrarMapas" prefHeight="50.0" prefWidth="150.0" text="Mapas" />
-            <Button maxWidth="-Infinity" mnemonicParsing="false" onAction="#añadirActividad" prefHeight="50.0" prefWidth="150.0" text="Añadir actividad" />
+            <Button maxWidth="-Infinity" mnemonicParsing="false" onAction="#añadirMapa" prefHeight="50.0" prefWidth="150.0" text="Añadir mapa" />
          </children>
       </VBox>
    </left>
