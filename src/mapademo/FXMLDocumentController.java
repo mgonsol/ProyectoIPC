@@ -490,6 +490,7 @@ setStatus(String.format(
 }
         
         
+
     }
     
 
@@ -770,14 +771,10 @@ setStatus(String.format(
         Pane vistaDetalle = loader.load();
         FXMLDetalleActividadesController controladorDetalle = loader.getController();
         
-        // 1. Comprobamos la región
         MapRegion region = app.findMapForActivity(actividad);
-        System.out.println("DEBUG: ¿Se ha encontrado región para la actividad? -> " + (region != null ? region.getName() : "NO (null)"));
 
         if (region != null) {
-            // 2. Comprobamos si la imagen del mapa existe y se construye
             Group mapaConRuta = buildMap(new File(region.getImagePath()));
-            System.out.println("DEBUG: ¿Se ha construido el Group del mapa? -> " + (mapaConRuta != null ? "SÍ" : "NO (null)"));
             
             drawActivity(actividad, region);
             for (Annotation ann : actividad.getAnnotations()) {
@@ -788,12 +785,17 @@ setStatus(String.format(
             controladorDetalle.setActividad(actividad, null);
         }
         
+        // Volvemos a congelar el scrollpane para que el diseño NO se rompa
         map_scrollpane.setFitToWidth(true);
         map_scrollpane.setFitToHeight(true);
+        map_scrollpane.setVbarPolicy(javafx.scene.control.ScrollPane.ScrollBarPolicy.NEVER);
+        map_scrollpane.setHbarPolicy(javafx.scene.control.ScrollPane.ScrollBarPolicy.NEVER);
+        map_scrollpane.setPannable(false);
+        
         map_scrollpane.setContent(vistaDetalle);
         
     } catch (Exception e) {
-        System.out.println("DEBUG: ERROR GRAVE en mostrarDetalleActividad:");
+        System.out.println("Error en mostrarDetalleActividad:");
         e.printStackTrace();
     }
 }
