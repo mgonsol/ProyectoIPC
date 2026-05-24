@@ -24,7 +24,6 @@ public class FXMLDetalleActividadesController implements Initializable {
     
     @FXML private ScrollPane mapaDetalle;
     
-    // Cambiamos el tipo a <String, Number> porque el eje X de tu interfaz es de texto
     @FXML private LineChart<String, Number> graficaDesnivel;
 
     @Override

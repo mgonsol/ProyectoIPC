@@ -8,160 +8,119 @@
 <?import javafx.scene.control.TextField?>
 <?import javafx.scene.image.Image?>
 <?import javafx.scene.image.ImageView?>
-<?import javafx.scene.layout.ColumnConstraints?>
-<?import javafx.scene.layout.GridPane?>
 <?import javafx.scene.layout.HBox?>
-<?import javafx.scene.layout.RowConstraints?>
+<?import javafx.scene.layout.Region?>
 <?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.text.Font?>
-<?import javafx.scene.text.Text?>
 
-<StackPane style="-fx-background-color: white;" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" fx:controller="modificarPerfil.FXMLModificarPerfilController">
+<StackPane stylesheets="@../resources/estilos.css" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" fx:controller="modificarPerfil.FXMLModificarPerfilController">
    <children>
-      <GridPane maxHeight="560.0" maxWidth="760.0" minHeight="480.0" minWidth="600.0" prefHeight="560.0" prefWidth="760.0" style="-fx-background-color: white;">
-         <columnConstraints>
-            <ColumnConstraints hgrow="ALWAYS" minWidth="10.0" percentWidth="60.0" />
-            <ColumnConstraints hgrow="ALWAYS" minWidth="10.0" percentWidth="40.0" />
-         </columnConstraints>
-         <rowConstraints>
-            <RowConstraints minHeight="10.0" vgrow="ALWAYS" />
-         </rowConstraints>
-         <children>
-            <VBox>
-               <children>
-                  <HBox alignment="CENTER_LEFT" prefHeight="100.0" prefWidth="200.0" style="-fx-background-color: #0685BC;">
-                     <children>
-                        <Text fill="WHITE" strokeType="OUTSIDE" strokeWidth="0.0" text="Modificar Perfil">
-                           <font>
-                              <Font name="Arial Black" size="27.0" />
-                           </font>
-                        </Text>
-                     </children>
-                     <padding>
-                        <Insets bottom="10.0" left="20.0" right="20.0" top="10.0" />
-                     </padding>
-                  </HBox>
-                  <GridPane maxWidth="1.7976931348623157E308" prefHeight="470.0" prefWidth="440.0">
-                     <columnConstraints>
-                        <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
-                     </columnConstraints>
-                     <rowConstraints>
-                        <RowConstraints maxHeight="145.40000762939454" minHeight="10.0" prefHeight="105.59999237060546" vgrow="SOMETIMES" />
-                        <RowConstraints maxHeight="145.40000762939454" minHeight="10.0" prefHeight="105.59999237060546" vgrow="SOMETIMES" />
-                        <RowConstraints maxHeight="209.4" minHeight="10.0" prefHeight="84.60000610351562" vgrow="SOMETIMES" />
-                        <RowConstraints maxHeight="209.4" minHeight="10.0" prefHeight="77.00003662109373" vgrow="SOMETIMES" />
-                        <RowConstraints maxHeight="209.4" minHeight="10.0" prefHeight="66.80000000000001" vgrow="SOMETIMES" />
-                        <RowConstraints maxHeight="191.59999999999997" minHeight="3.0" prefHeight="81.19999999999999" vgrow="SOMETIMES" />
-                     </rowConstraints>
-                     <children>
-                        <Label text="Nickname:" textFill="#025477">
-                           <padding>
-                              <Insets left="20.0" right="20.0" />
-                           </padding>
-                           <GridPane.margin>
-                              <Insets bottom="22.0" />
-                           </GridPane.margin>
-                        </Label>
-                        <TextField fx:id="newNickname" minHeight="26.0" minWidth="150.0" prefHeight="26.0" prefWidth="350.0">
-                           <GridPane.margin>
-                              <Insets left="20.0" right="80.0" top="20.0" />
-                           </GridPane.margin>
-                        </TextField>
-                        <Label text="Email:" textFill="#025477" GridPane.rowIndex="1">
-                           <GridPane.margin>
-                              <Insets bottom="40.0" left="20.0" />
-                           </GridPane.margin>
-                        </Label>
-                        <TextField fx:id="newMail" GridPane.rowIndex="1">
-                           <GridPane.margin>
-                              <Insets left="20.0" right="80.0" />
-                           </GridPane.margin>
-                        </TextField>
-                        <VBox prefHeight="200.0" prefWidth="100.0" GridPane.rowIndex="2">
-                           <children>
-                              <Label text="Nueva contraseña:" textFill="#025477">
-                                 <VBox.margin>
-                                    <Insets left="20.0" top="20.0" />
-                                 </VBox.margin>
-                              </Label>
-                              <PasswordField fx:id="newPassword" minHeight="26.0" minWidth="150.0" prefHeight="26.0" prefWidth="350.0">
-                                 <VBox.margin>
-                                    <Insets left="20.0" right="80.0" />
-                                 </VBox.margin>
-                              </PasswordField>
-                              <Label fx:id="passwordError" text="Entre 8 y 20 caracteres, sin espacios" textFill="#ca0505" visible="false">
-                                 <VBox.margin>
-                                    <Insets bottom="10.0" left="20.0" />
-                                 </VBox.margin>
-                              </Label>
-                           </children>
-                        </VBox>
-                        <Label text="Fecha de nacimiento" textFill="#025477" GridPane.rowIndex="3">
-                           <GridPane.margin>
-                              <Insets bottom="40.0" left="20.0" />
-                           </GridPane.margin>
-                        </Label>
-                        <DatePicker fx:id="newDate" onAction="#seleccionaFechaNacimiento" GridPane.rowIndex="3">
-                           <GridPane.margin>
-                              <Insets left="20.0" />
-                           </GridPane.margin>
-                        </DatePicker>
-                        <HBox alignment="CENTER_LEFT" GridPane.rowIndex="4">
-                           <GridPane.margin>
-                              <Insets left="20.0" />
-                           </GridPane.margin>
-                           <children>
-                              <Label alignment="CENTER" text="Avatar" />
-                              <Button fx:id="newAvatar" mnemonicParsing="false" onAction="#cambiarAvatar">
-                                 <graphic>
-                                    <ImageView fx:id="avatar" fitHeight="50.0" fitWidth="42.0" pickOnBounds="true" preserveRatio="true" />
-                                 </graphic>
-                              </Button>
-                           </children>
-                        </HBox>
-                        <HBox alignment="CENTER_RIGHT" prefHeight="100.0" prefWidth="440.0" spacing="25.0" GridPane.rowIndex="5">
-                           <children>
-                              <Button minWidth="80.0" mnemonicParsing="false" onAction="#cerrarSesion" prefWidth="120.0" style="-fx-background-color: red;" text="Cerrar Sesión" textFill="WHITE" />
-                              <Button minWidth="100.0" mnemonicParsing="false" onAction="#guardar" prefWidth="120.0" style="-fx-background-color: #0685BC;" text="Guardar" textFill="WHITE">
-                                 <font>
-                                    <Font size="14.0" />
-                                 </font>
-                                 <graphic>
-                                    <ImageView fitHeight="18.0" fitWidth="15.0" pickOnBounds="true" preserveRatio="true">
-                                       <image>
-                                          <Image url="@../resources/accept_white.png" />
-                                       </image>
-                                    </ImageView>
-                                 </graphic>
-                              </Button>
-                              <Button minWidth="80.0" mnemonicParsing="false" onAction="#cancel1" prefWidth="100.0" style="-fx-background-color: #0685BC;" text="Cancelar" textFill="WHITE">
-                                 <graphic>
-                                    <ImageView fitHeight="15.0" fitWidth="15.0" pickOnBounds="true" preserveRatio="true">
-                                       <image>
-                                          <Image url="@../resources/cancel_white.png" />
-                                       </image>
-                                    </ImageView>
-                                 </graphic>
-                                 <font>
-                                    <Font size="14.0" />
-                                 </font>
-                              </Button>
-                           </children>
-                           <GridPane.margin>
-                              <Insets bottom="5.0" left="20.0" right="20.0" top="20.0" />
-                           </GridPane.margin>
-                        </HBox>
-                     </children>
-                  </GridPane>
-               </children>
-            </VBox>
-            <ImageView fitHeight="258.0" fitWidth="262.0" pickOnBounds="true" preserveRatio="true" GridPane.columnIndex="1" GridPane.halignment="CENTER" GridPane.valignment="CENTER">
-               <image>
-                  <Image url="@../resources/logo_runninglasafor_1-removebg-preview.png" />
-               </image>
-            </ImageView>
-         </children>
-      </GridPane>
+      <!-- Split-screen: izquierda formulario / derecha panel azul fijo -->
+      <HBox maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308">
+
+         <!-- ── Panel izquierdo: formulario (blanco) ── -->
+         <VBox alignment="TOP_LEFT" style="-fx-background-color: white;" HBox.hgrow="ALWAYS" minWidth="380.0">
+            <padding>
+               <Insets bottom="40.0" left="48.0" right="48.0" top="48.0" />
+            </padding>
+            <children>
+               <!-- Título -->
+               <Label text="Modificar Perfil" style="-fx-font-size: 28px; -fx-font-weight: bold; -fx-text-fill: #1A202C;" />
+               <Label text="Actualiza tus datos de usuario" style="-fx-font-size: 13px; -fx-text-fill: #718096;">
+                  <VBox.margin><Insets top="4.0" bottom="28.0" /></VBox.margin>
+               </Label>
+
+               <!-- Nickname (no editable) -->
+               <Label text="Nickname" style="-fx-font-size: 12px; -fx-font-weight: bold; -fx-text-fill: #4A5568;" />
+               <TextField fx:id="newNickname" maxWidth="1.7976931348623157E308">
+                  <VBox.margin><Insets top="6.0" /></VBox.margin>
+               </TextField>
+
+               <!-- Email -->
+               <Label text="Email" style="-fx-font-size: 12px; -fx-font-weight: bold; -fx-text-fill: #4A5568;">
+                  <VBox.margin><Insets top="16.0" /></VBox.margin>
+               </Label>
+               <TextField fx:id="newMail" promptText="correo@ejemplo.com" maxWidth="1.7976931348623157E308">
+                  <VBox.margin><Insets top="6.0" /></VBox.margin>
+               </TextField>
+
+               <!-- Nueva contraseña -->
+               <Label text="Nueva contraseña" style="-fx-font-size: 12px; -fx-font-weight: bold; -fx-text-fill: #4A5568;">
+                  <VBox.margin><Insets top="16.0" /></VBox.margin>
+               </Label>
+               <PasswordField fx:id="newPassword" promptText="Déjalo vacío para no cambiarla" maxWidth="1.7976931348623157E308">
+                  <VBox.margin><Insets top="6.0" /></VBox.margin>
+               </PasswordField>
+
+               <!-- Fecha de nacimiento -->
+               <Label text="Fecha de nacimiento" style="-fx-font-size: 12px; -fx-font-weight: bold; -fx-text-fill: #4A5568;">
+                  <VBox.margin><Insets top="16.0" /></VBox.margin>
+               </Label>
+               <DatePicker fx:id="newDate" maxWidth="1.7976931348623157E308">
+                  <VBox.margin><Insets top="6.0" /></VBox.margin>
+               </DatePicker>
+
+               <!-- Avatar -->
+               <Label text="Avatar" style="-fx-font-size: 12px; -fx-font-weight: bold; -fx-text-fill: #4A5568;">
+                  <VBox.margin><Insets top="16.0" /></VBox.margin>
+               </Label>
+               <HBox alignment="CENTER_LEFT" spacing="16.0">
+                  <VBox.margin><Insets top="8.0" /></VBox.margin>
+                  <children>
+                     <Button mnemonicParsing="false" onAction="#cambiarAvatar" style="-fx-background-color: #E2E8F0; -fx-background-radius: 50%; -fx-padding: 4;">
+                        <graphic>
+                           <ImageView fx:id="avatar" fitHeight="56.0" fitWidth="56.0" pickOnBounds="true" preserveRatio="true" />
+                        </graphic>
+                     </Button>
+                     <Label text="Haz clic en la imagen para cambiar el avatar" style="-fx-font-size: 12px; -fx-text-fill: #718096;" wrapText="true" />
+                  </children>
+               </HBox>
+
+               <!-- Spacer -->
+               <Region VBox.vgrow="ALWAYS" />
+
+               <!-- Botones -->
+               <HBox alignment="CENTER_RIGHT" spacing="12.0">
+                  <VBox.margin><Insets top="28.0" /></VBox.margin>
+                  <children>
+                     <Button mnemonicParsing="false" onAction="#cerrarSesion" styleClass="btn-danger" text="Cerrar Sesión" />
+                     <Button mnemonicParsing="false" onAction="#guardar" styleClass="btn-primary" text="Guardar">
+                        <graphic>
+                           <ImageView fitHeight="16.0" fitWidth="14.0" pickOnBounds="true" preserveRatio="true">
+                              <image>
+                                 <Image url="@../resources/accept_white.png" />
+                              </image>
+                           </ImageView>
+                        </graphic>
+                     </Button>
+                     <Button mnemonicParsing="false" onAction="#cancel1" text="Cancelar" />
+                  </children>
+               </HBox>
+            </children>
+         </VBox>
+
+         <!-- ── Panel derecho: azul fijo, siempre visible ── -->
+         <VBox alignment="TOP_CENTER" minWidth="240.0" prefWidth="300.0"
+               style="-fx-background-color: #0685BC;" HBox.hgrow="NEVER">
+            <padding>
+               <Insets top="60.0" bottom="40.0" left="24.0" right="24.0" />
+            </padding>
+            <children>
+               <ImageView fitHeight="200.0" fitWidth="220.0" pickOnBounds="true" preserveRatio="true">
+                  <image>
+                     <Image url="@../resources/logo_runninglasafor_1-removebg-preview.png" />
+                  </image>
+               </ImageView>
+               <Label text="Running la Safor" style="-fx-font-size: 18px; -fx-font-weight: bold; -fx-text-fill: white; -fx-text-alignment: center;" wrapText="true">
+                  <VBox.margin><Insets top="20.0" /></VBox.margin>
+               </Label>
+               <Label text="Tu compañero de entrenamiento" style="-fx-font-size: 12px; -fx-text-fill: rgba(255,255,255,0.75); -fx-text-alignment: center;" wrapText="true">
+                  <VBox.margin><Insets top="8.0" /></VBox.margin>
+               </Label>
+            </children>
+         </VBox>
+
+      </HBox>
    </children>
 </StackPane>

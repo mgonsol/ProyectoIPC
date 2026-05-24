@@ -1,68 +1,349 @@
-/*
- * Copyright (c) 2014, Oracle and/or its affiliates.
- * All rights reserved. Use is subject to license terms.
- *
- * This file is available and licensed under the following license:
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions
- * are met:
- *
- *  - Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer.
- *  - Redistributions in binary form must reproduce the above copyright
- *    notice, this list of conditions and the following disclaimer in
- *    the documentation and/or other materials provided with the distribution.
- *  - Neither the name of Oracle Corporation nor the names of its
- *    contributors may be used to endorse or promote products derived
- *    from this software without specific prior written permission.
- *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
- * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
- * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
- * A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
- * OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
- * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
- * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
- * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
- * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
- * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
- * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- */
+/* ====================================================
+   Running la Safor — Hoja de estilos global
+   Paleta: azul primario #0685BC / fondo #F0F4F8 / blanco superficie
+   ==================================================== */
 
-/*******************************************************************************
- *                                                                             *
- * Embedded Styling                                                            *
- *                                                                             *
- ******************************************************************************/
+/* ── Raíz y tipografía ── */
+.root {
+    -fx-font-family: "Segoe UI", "Helvetica Neue", "Arial", sans-serif;
+    -fx-font-size: 13px;
+}
 
 
+/* ════════════════════════════════════════════════════
+   BOTONES
+   ════════════════════════════════════════════════════ */
 
-/*******************************************************************************
- *                                                                             *
- * High Contrast Theme                                                         *
- *                                                                             *
- ******************************************************************************/
+.button {
+    -fx-background-color: #E2E8F0;
+    -fx-text-fill: #2D3748;
+    -fx-font-size: 13px;
+    -fx-background-radius: 7;
+    -fx-border-radius: 7;
+    -fx-padding: 7 16 7 16;
+    -fx-cursor: hand;
+    -fx-effect: null;
+}
+.button:hover {
+    -fx-background-color: #CBD5E0;
+}
+.button:pressed {
+    -fx-background-color: #A0AEC0;
+}
+
+/* Botón primario (azul de marca) */
+.btn-primary {
+    -fx-background-color: #0685BC;
+    -fx-text-fill: white;
+    -fx-font-weight: bold;
+}
+.btn-primary:hover {
+    -fx-background-color: #0574a4;
+}
+.btn-primary:pressed {
+    -fx-background-color: #025477;
+}
+
+/* Botón de peligro (rojo) */
+.btn-danger {
+    -fx-background-color: #E53E3E;
+    -fx-text-fill: white;
+    -fx-font-weight: bold;
+}
+.btn-danger:hover {
+    -fx-background-color: #C53030;
+}
+.btn-danger:pressed {
+    -fx-background-color: #9B2C2C;
+}
+
+/* Botones de navegación lateral (dark panel) */
+.button.nav-button {
+    -fx-background-color: transparent;
+    -fx-text-fill: #A0C4E4;
+    -fx-font-size: 13px;
+    -fx-font-weight: bold;
+    -fx-alignment: CENTER_LEFT;
+    -fx-padding: 14 20 14 24;
+    -fx-background-radius: 0;
+    -fx-border-radius: 0;
+    -fx-cursor: hand;
+    -fx-effect: null;
+}
+.button.nav-button:hover {
+    -fx-background-color: rgba(255, 255, 255, 0.12);
+    -fx-text-fill: white;
+}
+.button.nav-button:pressed {
+    -fx-background-color: rgba(255, 255, 255, 0.22);
+    -fx-text-fill: white;
+}
+
+
+/* ════════════════════════════════════════════════════
+   ENTRADAS DE TEXTO
+   ════════════════════════════════════════════════════ */
+
+.text-field,
+.password-field {
+    -fx-background-color: white;
+    -fx-border-color: #CBD5E0;
+    -fx-border-width: 1;
+    -fx-border-radius: 7;
+    -fx-background-radius: 7;
+    -fx-padding: 7 11 7 11;
+    -fx-font-size: 13px;
+    -fx-text-fill: #1A202C;
+    -fx-prompt-text-fill: #A0AEC0;
+}
+.text-field:focused,
+.password-field:focused {
+    -fx-border-color: #0685BC;
+    -fx-border-width: 1.5;
+    -fx-effect: dropshadow(gaussian, rgba(6, 133, 188, 0.18), 6, 0, 0, 0);
+}
+.text-field:hover,
+.password-field:hover {
+    -fx-border-color: #A0AEC0;
+}
+.text-field:disabled,
+.password-field:disabled {
+    -fx-background-color: #F7FAFC;
+    -fx-text-fill: #718096;
+    -fx-border-color: #E2E8F0;
+}
+
+/* DatePicker */
+.date-picker .text-field {
+    -fx-border-radius: 7 0 0 7;
+    -fx-background-radius: 7 0 0 7;
+}
+.date-picker .arrow-button {
+    -fx-background-color: #E2E8F0;
+    -fx-background-radius: 0 7 7 0;
+    -fx-padding: 7 10 7 10;
+}
+.date-picker .arrow-button:hover {
+    -fx-background-color: #CBD5E0;
+}
+
+
+/* ════════════════════════════════════════════════════
+   LISTAS
+   ════════════════════════════════════════════════════ */
+
+.list-view {
+    -fx-background-color: white;
+    -fx-border-color: #E2E8F0;
+    -fx-border-radius: 0;
+    -fx-background-radius: 0;
+    -fx-padding: 0;
+}
+.list-view .list-cell {
+    -fx-background-color: transparent;
+    -fx-padding: 11 14 11 14;
+    -fx-font-size: 12.5px;
+    -fx-text-fill: #2D3748;
+    -fx-border-color: transparent transparent #F0F4F8 transparent;
+    -fx-border-width: 0 0 1 0;
+}
+.list-view .list-cell:hover {
+    -fx-background-color: #EBF8FF;
+    -fx-text-fill: #1A202C;
+}
+.list-view .list-cell:selected {
+    -fx-background-color: #BEE3F8;
+    -fx-text-fill: #1A202C;
+}
+.list-view .list-cell:selected:hover {
+    -fx-background-color: #90CDF4;
+}
+.list-view:focused .list-cell:selected {
+    -fx-background-color: #BEE3F8;
+}
+
+
+/* ════════════════════════════════════════════════════
+   SCROLL PANE
+   ════════════════════════════════════════════════════ */
+
+.scroll-pane > .viewport {
+    -fx-background-color: transparent;
+}
+.scroll-pane .scroll-bar .track {
+    -fx-background-color: #F0F4F8;
+    -fx-border-color: transparent;
+}
+.scroll-pane .scroll-bar .thumb {
+    -fx-background-color: #CBD5E0;
+    -fx-background-radius: 4;
+}
+.scroll-pane .scroll-bar .thumb:hover {
+    -fx-background-color: #A0AEC0;
+}
+.scroll-pane .corner {
+    -fx-background-color: #F0F4F8;
+}
+
+
+/* ════════════════════════════════════════════════════
+   SPLIT PANE
+   ════════════════════════════════════════════════════ */
+
+.split-pane {
+    -fx-background-color: #F0F4F8;
+    -fx-padding: 0;
+}
+.split-pane > .split-pane-divider {
+    -fx-background-color: #E2E8F0;
+    -fx-padding: 0 1 0 1;
+}
+
+
+/* ════════════════════════════════════════════════════
+   MENU BAR Y MENÚS
+   ════════════════════════════════════════════════════ */
+
+.menu-bar {
+    -fx-background-color: white;
+    -fx-padding: 2 0 2 0;
+    -fx-font-size: 13px;
+}
+.menu-bar .menu {
+    -fx-padding: 5 12 5 12;
+}
+.menu-bar .menu:hover,
+.menu-bar .menu:showing {
+    -fx-background-color: #EBF8FF;
+    -fx-background-radius: 5;
+}
+.context-menu {
+    -fx-background-color: white;
+    -fx-border-color: #E2E8F0;
+    -fx-border-radius: 8;
+    -fx-background-radius: 8;
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.12), 12, 0, 0, 4);
+    -fx-padding: 4 0 4 0;
+}
+.menu-item {
+    -fx-padding: 8 16 8 16;
+    -fx-font-size: 13px;
+}
+.menu-item:hover {
+    -fx-background-color: #EBF8FF;
+}
+.menu-item:pressed {
+    -fx-background-color: #BEE3F8;
+}
+
+
+/* ════════════════════════════════════════════════════
+   SEPARADOR
+   ════════════════════════════════════════════════════ */
+
+.separator:horizontal > .line {
+    -fx-border-color: #E2E8F0 transparent transparent transparent;
+    -fx-border-style: solid none none none;
+    -fx-border-width: 1 0 0 0;
+}
+.separator:vertical > .line {
+    -fx-border-color: transparent transparent transparent #E2E8F0;
+    -fx-border-style: none none none solid;
+    -fx-border-width: 0 0 0 1;
+}
+
+
+/* ════════════════════════════════════════════════════
+   SLIDER (zoom)
+   ════════════════════════════════════════════════════ */
+
+.slider .track {
+    -fx-background-color: #CBD5E0;
+    -fx-background-radius: 4;
+    -fx-pref-height: 4;
+}
+.slider .thumb {
+    -fx-background-color: #0685BC;
+    -fx-background-radius: 50%;
+    -fx-pref-width: 16;
+    -fx-pref-height: 16;
+    -fx-effect: dropshadow(gaussian, rgba(6, 133, 188, 0.3), 4, 0, 0, 1);
+}
+.slider .thumb:hover {
+    -fx-background-color: #025477;
+}
+
+
+/* ════════════════════════════════════════════════════
+   GRÁFICA LineChart (perfil de desnivel)
+   ════════════════════════════════════════════════════ */
+
+.chart {
+    -fx-background-color: white;
+    -fx-padding: 10;
+}
+.chart-plot-background {
+    -fx-background-color: #FAFBFD;
+}
+.chart-vertical-grid-lines {
+    -fx-stroke: #E2E8F0;
+    -fx-stroke-dash-array: 4 4;
+}
+.chart-horizontal-grid-lines {
+    -fx-stroke: #E2E8F0;
+    -fx-stroke-dash-array: 4 4;
+}
+.chart-alternative-row-fill {
+    -fx-fill: transparent;
+}
+.axis {
+    -fx-tick-label-fill: #718096;
+    -fx-tick-label-font-size: 11px;
+}
+.axis-label {
+    -fx-text-fill: #718096;
+    -fx-font-size: 11px;
+}
+.default-color0.chart-series-line {
+    -fx-stroke: #0685BC;
+    -fx-stroke-width: 2;
+}
+.default-color0.chart-line-symbol {
+    -fx-background-color: #0685BC, white;
+    -fx-background-radius: 5;
+    -fx-background-insets: 0, 2;
+    -fx-pref-width: 8;
+    -fx-pref-height: 8;
+}
+.chart-legend {
+    -fx-background-color: transparent;
+}
+
+
+/* ════════════════════════════════════════════════════
+   MAP PIN (existente)
+   ════════════════════════════════════════════════════ */
+
+.map-pin {
+    -fx-shape: "M13.558,0C6.07,0,0,6.07,0,13.558s13.558,22.346,13.558,22.346s13.558-14.858,13.558-22.346S21.045,0,13.558,0z M13.558,20.762c-4.084,0-7.395-3.311-7.395-7.395s3.311-7.395,7.395-7.395c4.084,0,7.396,3.311,7.396,7.395 S17.642,20.762,13.558,20.762z";
+    -fx-background-color: black, white;
+    -fx-background-insets: 0, 2;
+    -fx-effect: dropshadow(two-pass-box, rgba(0, 0, 0, 0.5), 10, 0.0, 0, 10);
+    -fx-pref-width: 48;
+    -fx-pref-height: 60;
+}
+.map-pin .arrow-button .arrow {
+    -fx-padding: 0;
+}
+
+
+/* ════════════════════════════════════════════════════
+   HIGH CONTRAST (existente)
+   ════════════════════════════════════════════════════ */
 
 .contrast {
     -app-color-hi: #5bf900;
     -app-color-lo: black;
     -app-hover: #666666;
     -fx-background-color: -app-color-lo;
-}
-
-/*-------------------------- map pin ------------------------- */
-
-.map-pin {
-    -fx-shape: "M13.558,0C6.07,0,0,6.07,0,13.558s13.558,22.346,13.558,22.346s13.558-14.858,13.558-22.346S21.045,0,13.558,0z
-M13.558,20.762c-4.084,0-7.395-3.311-7.395-7.395s3.311-7.395,7.395-7.395c4.084,0,7.396,3.311,7.396,7.395
-S17.642,20.762,13.558,20.762z";    
-    -fx-background-color: black, white;
-    -fx-background-insets: 0, 2;
-    -fx-effect: dropshadow( two-pass-box, rgba(0, 0, 0, 0.5), 10, 0.0, 0, 10 );
-    -fx-pref-width: 48;
-    -fx-pref-height: 60;
-}
-.map-pin .arrow-button .arrow {
-    -fx-padding: 0;
 }

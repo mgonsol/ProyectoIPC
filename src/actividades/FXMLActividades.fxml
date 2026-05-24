@@ -7,62 +7,65 @@
 <?import javafx.scene.layout.GridPane?>
 <?import javafx.scene.layout.RowConstraints?>
 
-<GridPane gridLinesVisible="true" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="-Infinity" minWidth="-Infinity" prefHeight="400.0" prefWidth="600.0" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" fx:controller="actividades.FXMLActividadesController">
-  <columnConstraints>
-    <ColumnConstraints hgrow="ALWAYS" minWidth="10.0" prefWidth="100.0" />
-    <ColumnConstraints hgrow="ALWAYS" minWidth="10.0" prefWidth="100.0" />
-  </columnConstraints>
-  <rowConstraints>
-    <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="ALWAYS" />
-    <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="ALWAYS" />
-  </rowConstraints>
+<GridPane maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="-Infinity" minWidth="-Infinity" prefHeight="400.0" prefWidth="600.0" hgap="16.0" vgap="16.0" stylesheets="@../resources/estilos.css" style="-fx-background-color: #F0F4F8;" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" fx:controller="actividades.FXMLActividadesController">
+   <padding>
+      <Insets bottom="20.0" left="20.0" right="20.0" top="20.0" />
+   </padding>
+   <columnConstraints>
+      <ColumnConstraints hgrow="ALWAYS" minWidth="10.0" prefWidth="100.0" />
+      <ColumnConstraints hgrow="ALWAYS" minWidth="10.0" prefWidth="100.0" />
+   </columnConstraints>
+   <rowConstraints>
+      <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="ALWAYS" />
+      <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="ALWAYS" />
+   </rowConstraints>
    <children>
-      <BorderPane prefHeight="200.0" prefWidth="200.0">
+      <BorderPane prefHeight="160.0" prefWidth="200.0" style="-fx-background-color: white; -fx-background-radius: 10; -fx-border-radius: 10; -fx-border-color: #E2E8F0; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.06), 8, 0, 0, 2);">
          <bottom>
-            <Label text="Tiempo Total" BorderPane.alignment="CENTER">
+            <Label text="Tiempo Total" BorderPane.alignment="CENTER" style="-fx-font-size: 12px; -fx-text-fill: #718096;">
                <BorderPane.margin>
-                  <Insets bottom="10.0" />
+                  <Insets bottom="14.0" />
                </BorderPane.margin>
             </Label>
          </bottom>
          <center>
-            <Label fx:id="tiempoTotal" BorderPane.alignment="CENTER" />
+            <Label fx:id="tiempoTotal" BorderPane.alignment="CENTER" style="-fx-font-size: 26px; -fx-font-weight: bold; -fx-text-fill: #0685BC;" />
          </center>
       </BorderPane>
-      <BorderPane prefHeight="200.0" prefWidth="200.0" GridPane.columnIndex="1">
+      <BorderPane prefHeight="160.0" prefWidth="200.0" GridPane.columnIndex="1" style="-fx-background-color: white; -fx-background-radius: 10; -fx-border-radius: 10; -fx-border-color: #E2E8F0; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.06), 8, 0, 0, 2);">
          <bottom>
-            <Label text="Distancia Acumulada" BorderPane.alignment="CENTER">
+            <Label text="Distancia Acumulada" BorderPane.alignment="CENTER" style="-fx-font-size: 12px; -fx-text-fill: #718096;">
                <BorderPane.margin>
-                  <Insets bottom="10.0" />
+                  <Insets bottom="14.0" />
                </BorderPane.margin>
             </Label>
          </bottom>
          <center>
-            <Label fx:id="distanciaAcumulada" BorderPane.alignment="CENTER" />
+            <Label fx:id="distanciaAcumulada" BorderPane.alignment="CENTER" style="-fx-font-size: 26px; -fx-font-weight: bold; -fx-text-fill: #0685BC;" />
          </center>
       </BorderPane>
-      <BorderPane prefHeight="200.0" prefWidth="200.0" GridPane.rowIndex="1">
+      <BorderPane prefHeight="160.0" prefWidth="200.0" GridPane.rowIndex="1" style="-fx-background-color: white; -fx-background-radius: 10; -fx-border-radius: 10; -fx-border-color: #E2E8F0; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.06), 8, 0, 0, 2);">
          <bottom>
-            <Label text="Metros de Ascenso Totales" BorderPane.alignment="CENTER">
+            <Label text="Metros de Ascenso Totales" BorderPane.alignment="CENTER" style="-fx-font-size: 12px; -fx-text-fill: #718096;">
                <BorderPane.margin>
-                  <Insets bottom="10.0" />
+                  <Insets bottom="14.0" />
                </BorderPane.margin>
             </Label>
          </bottom>
          <center>
-            <Label fx:id="metrosAscensoTotales" BorderPane.alignment="CENTER" />
+            <Label fx:id="metrosAscensoTotales" BorderPane.alignment="CENTER" style="-fx-font-size: 26px; -fx-font-weight: bold; -fx-text-fill: #0685BC;" />
          </center>
       </BorderPane>
-      <BorderPane prefHeight="200.0" prefWidth="200.0" GridPane.columnIndex="1" GridPane.rowIndex="1">
+      <BorderPane prefHeight="160.0" prefWidth="200.0" GridPane.columnIndex="1" GridPane.rowIndex="1" style="-fx-background-color: white; -fx-background-radius: 10; -fx-border-radius: 10; -fx-border-color: #E2E8F0; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.06), 8, 0, 0, 2);">
          <bottom>
-            <Label text="Metros de Descenso Totales" BorderPane.alignment="CENTER">
+            <Label text="Metros de Descenso Totales" BorderPane.alignment="CENTER" style="-fx-font-size: 12px; -fx-text-fill: #718096;">
                <BorderPane.margin>
-                  <Insets bottom="10.0" />
+                  <Insets bottom="14.0" />
                </BorderPane.margin>
             </Label>
          </bottom>
          <center>
-            <Label fx:id="metrosDescensoTotales" BorderPane.alignment="CENTER" />
+            <Label fx:id="metrosDescensoTotales" BorderPane.alignment="CENTER" style="-fx-font-size: 26px; -fx-font-weight: bold; -fx-text-fill: #0685BC;" />
          </center>
       </BorderPane>
    </children>

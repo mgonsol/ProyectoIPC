@@ -54,10 +54,6 @@ import upv.ipc.sportlib.TrackPoint;
 import upv.ipc.sportlib.User;
 import javafx.scene.Scene;
 import javafx.stage.Modality;
-import javafx.stage.Window;
-import javafx.scene.chart.AreaChart;
-import javafx.scene.chart.NumberAxis;
-import javafx.scene.chart.XYChart;
 
 
 public class FXMLDocumentController implements Initializable {
@@ -737,60 +733,8 @@ setStatus(String.format(
         }
     }
 
-    private void mostrarGraficaDesnivel(Activity actividad) {
-    List<TrackPoint> puntos = actividad.getTrackPoints();
-    if (puntos == null || puntos.isEmpty()) return;
 
-    NumberAxis ejeX = new NumberAxis();
-    ejeX.setLabel("Distancia (km)");
-    NumberAxis ejeY = new NumberAxis();
-    ejeY.setLabel("Altitud (m)");
 
-    AreaChart<Number, Number> areaChart = new AreaChart<>(ejeX, ejeY);
-    areaChart.setTitle("Perfil de Desnivel: " + actividad.getName());
-    areaChart.setLegendVisible(false);
-
-    XYChart.Series<Number, Number> series = new XYChart.Series<>();
-    double distanciaAcumulada = 0.0;
-    
-    TrackPoint primerPunto = puntos.get(0);
-    series.getData().add(new XYChart.Data<>(0.0, primerPunto.getElevation()));
-
-    for (int i = 0; i < puntos.size() - 1; i++) {
-        TrackPoint pActual = puntos.get(i);
-        TrackPoint pSiguiente = puntos.get(i + 1);
-        distanciaAcumulada += pActual.distanceTo(pSiguiente);
-        
-        double km = distanciaAcumulada / 1000.0;
-        double altitud = pSiguiente.getElevation();
-        series.getData().add(new XYChart.Data<>(km, altitud));
-    }
-
-    areaChart.getData().add(series);
-
-    Stage stageGrafica = new Stage();
-    stageGrafica.setTitle("Análisis de Altitud - Running la Safor");
-    stageGrafica.initModality(Modality.NONE);
-    stageGrafica.initOwner(map_listview.getScene().getWindow());
-    
-    Scene escena = new Scene(areaChart, 600, 350);
-    stageGrafica.setScene(escena);
-    stageGrafica.show();
-}
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
     @FXML
     private void perfil(ActionEvent event) {
         try {

@@ -11,9 +11,7 @@ import javafx.fxml.FXMLLoader;
 import javafx.fxml.Initializable;
 import javafx.scene.Node;
 import javafx.scene.control.Alert;
-import javafx.scene.control.Button;
 import javafx.scene.control.DatePicker;
-import javafx.scene.control.Label;
 import javafx.scene.control.PasswordField;
 import javafx.scene.control.TextField;
 import javafx.scene.image.Image;
@@ -28,21 +26,17 @@ public class FXMLModificarPerfilController implements Initializable {
     
     private final SportActivityApp app = SportActivityApp.getInstance();
     @FXML
-    private Label passwordError;
-    @FXML
     private PasswordField newPassword;
     @FXML
     private TextField newNickname;
     @FXML
     private DatePicker newDate;
     @FXML
-    private Button newAvatar;
-    @FXML
     private TextField newMail;
     @FXML
     private ImageView avatar;
     
-    private String rutaAvatarActual;
+    private String rutaAvatarActual = "";
 
     @Override
     public void initialize(URL url, ResourceBundle rb) {
@@ -95,7 +89,7 @@ public class FXMLModificarPerfilController implements Initializable {
         String nuevaPass = newPassword.getText();
         LocalDate nuevaFecha = newDate.getValue();
 
-        // 1. REGLA DE LA CONTRASEÑA: Si está en blanco, mantenemos la actual sin modificarla
+        // Si la contraseña está en blanco, mantenemos la actual
         String passDefinitiva;
         if (nuevaPass.isEmpty()) {
             passDefinitiva = usuarioActual.getPassword();
@@ -103,7 +97,6 @@ public class FXMLModificarPerfilController implements Initializable {
             passDefinitiva = nuevaPass;
         }
 
-        // 2. VALIDACIONES DE LA LIBRERÍA
         StringBuilder errores = new StringBuilder();
 
         if (!User.checkEmail(nuevoEmail)) {
@@ -119,53 +112,34 @@ public class FXMLModificarPerfilController implements Initializable {
             errores.append("- Debes ser mayor de 12 años.\n");
         }
 
-        // 3. COMPROBAR RESULTADO Y GUARDAR
         if (errores.length() > 0) {
-            // Mostrar alerta de error
             Alert alerta = new Alert(Alert.AlertType.ERROR);
             alerta.setTitle("Error al actualizar perfil");
             alerta.setHeaderText("Por favor, revisa los siguientes campos:");
             alerta.setContentText(errores.toString());
             alerta.showAndWait();
         } else {
-            // Si todo es correcto, actualizamos los datos en la base de datos
             app.updateCurrentUser(nuevoEmail, passDefinitiva, nuevaFecha, rutaAvatarActual);
-            
-            // Mostrar mensaje de éxito
             Alert alertaExito = new Alert(Alert.AlertType.INFORMATION);
             alertaExito.setTitle("Perfil actualizado");
             alertaExito.setHeaderText(null);
             alertaExito.setContentText("¡Tus datos se han guardado correctamente!");
             alertaExito.showAndWait();
-
-            // Cerrar la ventana modal
             Stage ventanaActual = (Stage) newMail.getScene().getWindow();
             ventanaActual.close();
         }
     }
     
-    // (Opcional) Método para el botón de "Cambiar Avatar"
     @FXML
     private void cambiarAvatar(ActionEvent event) {
-        // 1. CREAMOS EL FILECHOOSER POR CÓDIGO
-    FileChooser fc = new FileChooser();
-    fc.setTitle("Seleccionar nuevo Avatar");
-    
-    // Filtro para que solo pueda elegir imágenes
-    fc.getExtensionFilters().add(new FileChooser.ExtensionFilter("Imágenes", "*.jpg", "*.png", "*.jpeg"));
-    
-    // 2. ABRIMOS LA VENTANA DEL SISTEMA OPERATIVO
-    File archivo = fc.showOpenDialog(avatar.getScene().getWindow());
-    
-    // 3. SI EL USUARIO ELIGE UNA FOTO...
-    if (archivo != null) {
-        // Guardamos la ruta temporalmente
-        rutaAvatarActual = archivo.getAbsolutePath();
-        
-        // Cargamos la foto en el ImageView para que el usuario la vea
-        Image nuevaImagen = new Image(archivo.toURI().toString());
-        avatar.setImage(nuevaImagen);
-    }
+        FileChooser fc = new FileChooser();
+        fc.setTitle("Seleccionar nuevo Avatar");
+        fc.getExtensionFilters().add(new FileChooser.ExtensionFilter("Imágenes", "*.jpg", "*.png", "*.jpeg"));
+        File archivo = fc.showOpenDialog(avatar.getScene().getWindow());
+        if (archivo != null) {
+            rutaAvatarActual = archivo.getAbsolutePath();
+            avatar.setImage(new Image(archivo.toURI().toString()));
+        }
     }
 
     @FXML
@@ -174,11 +148,4 @@ public class FXMLModificarPerfilController implements Initializable {
         ventanaPerfil.close();
     }
 
-    @FXML
-    private void seleccionaFechaNacimiento(ActionEvent event) {
-    }
-
-    @FXML
-    private void seleccionaAvatar(ActionEvent event) {
-    } 
 }
