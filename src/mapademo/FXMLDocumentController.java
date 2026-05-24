@@ -570,7 +570,6 @@ setStatus(String.format(
 
     // ── Añadir mapa ───────────────────────────────────────────
 
-    @FXML
     private void añadirMapa(ActionEvent event) {
         FileChooser fc = new FileChooser();
         fc.setTitle("Seleccionar imagen del mapa");
@@ -714,7 +713,6 @@ setStatus(String.format(
         } catch (Exception e) { e.printStackTrace(); }
     }
 
-    @FXML
     private void añadirActividad(ActionEvent event) {
         FileChooser fc = new FileChooser();
         fc.setTitle("Seleccionar archivo GPX");
